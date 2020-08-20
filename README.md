@@ -29,4 +29,4 @@ pip install -r requirements.txt
 # Examples
 
 ## Alter Completed Runs
-This example script demonstrates how to alter a set of runs that were created from a common procedure. The function `update_runs_with_new_info` includes detailed comments about how the script alters each run. Use this script to update attributes for a run after the run was created.
+This example script demonstrates how to alter a set of runs that were created from a given procedure. The function `update_runs_with_new_info` includes detailed comments about how the script alters each run. Use this script to update attributes for a run after the run was created. For example, change the status, add fields, and update the fields' units.
