@@ -39,7 +39,7 @@ class Api(object):
         return {'Authorization': f'{self.access_token}',
                 'Content-Type': 'application/json'}
 
-    def send_api_request(self, query_info: dict) -> dict:
+    def request(self, query_info: dict) -> dict:
         """
         Send authenticated request to ION GraphQL API.
 
@@ -50,6 +50,9 @@ class Api(object):
             dict: API response from request.
         """
         headers = self._get_headers()
-        req_data = json.dumps(query_info)
-        res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, data=req_data)
-        return json.loads(res.text)
+        res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, json=query_info)
+        resp_value = res.json()
+        if resp_value.get('errors'):
+            print('---AN ERROR OCCURRED IN THE API REQUEST---')
+            print(resp_value)
+        return resp_value

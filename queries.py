@@ -10,6 +10,17 @@ query GetRuns($filters: RunsInputFilters, $sort: [RunSortEnum]) {
 }
 '''
 
+GET_RUN = '''
+query GetRun($id: ID!) {
+	run(id: $id) {
+	  id steps {
+	    id
+        position
+        entityId
+	  }
+	}
+}
+'''
 
 CREATE_RUN_STEP = '''
     mutation CreateRunStep($input: CreateRunStepInput!) {
@@ -51,4 +62,12 @@ UPDATE_RUN_STEP = '''
             }
         }
     }
+'''
+
+CREATE_FILE_ATTACHMENT = '''
+mutation CreateFileAttachment($input: CreateFileAttachmentInput!) {
+    createFileAttachment(input: $input) {
+        uploadUrl
+    }
+}
 '''
