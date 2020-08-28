@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 import requests
 from urllib.parse import urljoin
 
@@ -53,6 +54,6 @@ class Api(object):
         res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, json=query_info)
         resp_value = res.json()
         if resp_value.get('errors'):
-            print('---AN ERROR OCCURRED IN THE API REQUEST---')
-            print(resp_value)
+            logging.error('---AN ERROR OCCURRED IN THE API REQUEST---')
+            logging.error(resp_value)
         return resp_value

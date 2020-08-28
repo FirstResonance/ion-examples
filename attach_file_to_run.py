@@ -1,4 +1,5 @@
-"""This script shows how to get the steps in a run and attach a file to
+"""
+This script shows how to get the steps in a run and attach a file to
 that run. In this example, we are simply uploading the file to the first step
 in the run. In application, you will want to identify the step by title or position
 and upload the file to that step accordingly.
@@ -27,7 +28,7 @@ def upload_file_to_step(api: Api, run_id: int, file_path: str) -> bool:
         file_path (str): The path of the file to upload to the step
 
     Returns:
-        list: Upload succeeded
+        bool: True if the upload succeeded
     """
     # Get the run you want to upload to, so we can find the step to upload to
     r = api.request({
