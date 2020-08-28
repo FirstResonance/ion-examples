@@ -1,7 +1,7 @@
 import argparse
 from getpass import getpass
 from api import Api
-import queries_and_mutations
+import queries
 
 
 def get_runs_from_procedure_id(api: Api, procedure_id: int) -> list:
@@ -16,10 +16,10 @@ def get_runs_from_procedure_id(api: Api, procedure_id: int) -> list:
         list: All run ids associated with given procedure_id
     """
     runs_query = {
-        'query': queries_and_mutations.GET_RUNS,
+        'query': queries.GET_RUNS,
         'variables': {'filters': {'procedureId': {'eq': procedure_id}}}
     }
-    runs = api.send_api_request(runs_query)
+    runs = api.request(runs_query)
     return [run['node']['id'] for run in runs['data']['runs']['edges']]
 
 
@@ -37,13 +37,13 @@ def create_run_step(api: Api, run_id: int, title: str, content: str=None) -> dic
         dict: Fields of newly created step
     """
     create_step = {
-        'query': queries_and_mutations.CREATE_RUN_STEP,
+        'query': queries.CREATE_RUN_STEP,
         'variables': {'input': {
             'title': title,
             'runId': run_id
         }}
     }
-    run_step = api.send_api_request(create_step)
+    run_step = api.request(create_step)
     return run_step['data']['createRunStep']['step']
 
 
@@ -65,7 +65,7 @@ def create_run_step_field(api: Api, run_step_id: int, name: str,
         dict: Values of newly created run step field
     """
     create_field = {
-        'query': queries_and_mutations.CREATE_RUN_STEP_FIELD,
+        'query': queries.CREATE_RUN_STEP_FIELD,
         'variables': {'input': {
             'runStepId': run_step_id,
             'name': name,
@@ -73,7 +73,7 @@ def create_run_step_field(api: Api, run_step_id: int, name: str,
             'required': required
         }}
     }
-    run_step_field = api.send_api_request(create_field)
+    run_step_field = api.request(create_field)
     return run_step_field['data']['createRunStepField']['runStepField']
 
 
@@ -91,14 +91,14 @@ def update_run_step_status(api: Api, run_step: dict, status: str) -> dict:
         dict: Updated fields for run step.
     """
     update_run_step = {
-        'query': queries_and_mutations.UPDATE_RUN_STEP,
+        'query': queries.UPDATE_RUN_STEP,
         'variables': {'input': {
             'id': run_step['id'],
             'status': status,
             'etag': run_step['_etag']
         }}
     }
-    run_step = api.send_api_request(update_run_step)
+    run_step = api.request(update_run_step)
     return run_step['data']['updateRunStep']['runStep']
 
 
@@ -116,14 +116,14 @@ def update_run_step_field_value(api: Api, run_step_field: dict, value) -> dict:
         dict: Updated values for run step field
     """
     update_run_step_field = {
-        'query': queries_and_mutations.UPDATE_RUN_STEP_FIELD_VALUE,
+        'query': queries.UPDATE_RUN_STEP_FIELD_VALUE,
         'variables': {'input': {
             'id': run_step_field['id'],
             'value': value,
             'etag': run_step_field['_etag']
         }}
     }
-    run_step_field = api.send_api_request(update_run_step_field)
+    run_step_field = api.request(update_run_step_field)
     return run_step_field['data']['updateRunStepFieldValue']['runStepField']
 
 
