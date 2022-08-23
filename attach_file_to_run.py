@@ -14,7 +14,7 @@ import argparse
 from getpass import getpass
 import os
 import requests
-from api import Api
+from utilities.api import Api
 import queries
 
 

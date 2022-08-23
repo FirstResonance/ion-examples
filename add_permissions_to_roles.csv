@@ -1,0 +1,3 @@
+role,permisison_group
+Master scheduler,CreateMRPJob
+Master scheduler,UpdateMRPJob
