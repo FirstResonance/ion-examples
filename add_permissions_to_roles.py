@@ -9,7 +9,7 @@ import queries
 from utilities.csv_helper import CsvHelper
 
 
-def attach_permission_to_role(api: Api, role_id: int, permission_group_id: int):
+def attach_permission_group_to_role(api: Api, role_id: int, permission_group_id: int):
     """
     Add permission to role.
     """
@@ -23,9 +23,9 @@ def attach_permission_to_role(api: Api, role_id: int, permission_group_id: int):
     api.request(attach_permission_role_body)
     
 
-def get_permission_id(api: Api, permission_name) -> int:
+def get_permission_group_id(api: Api, permission_name) -> int:
     """
-    Gets all permission groups that exist within ION.
+    Get permission group given name.
     """
     role_filter = {
         'name': {
@@ -43,7 +43,7 @@ def get_permission_id(api: Api, permission_name) -> int:
 
 def get_role_id(api: Api, role_name) -> int:
     """
-    Gets all permission groups that exist within ION.
+    Get role given name.
     """
     role_filter = {
         'name': {
@@ -75,5 +75,5 @@ if __name__ == '__main__':
             continue
         print(f'Processing row {index}/{len(csv_data)}')
         role_id = get_role_id(api, row[0])
-        permission_group_id = get_permission_id(api, row[1])
-        attach_permission_to_role(api, role_id, permission_group_id)
+        permission_group_id = get_permission_group_id(api, row[1])
+        attach_permission_group_to_role(api, role_id, permission_group_id)
