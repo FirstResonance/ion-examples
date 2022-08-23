@@ -71,3 +71,87 @@ mutation CreateFileAttachment($input: CreateFileAttachmentInput!) {
     }
 }
 '''
+
+GET_PERMISSION_GROUPS = '''
+query GetPermissionGroups($filters: PermissionGroupsInputFilters, $sort: [PermissionGroupSortEnum]) {
+  permissionGroups(sort: $sort, filters: $filters) {
+    edges {
+      node {
+        id
+        name
+        family
+      }
+    }
+  }
+}
+'''
+
+GET_ROLES = '''
+query GetRoles($filters: RolesInputFilters) {
+    roles(filters: $filters) {
+        edges {
+            node {
+                id
+                name
+            }
+        }
+    }
+}
+'''
+
+GET_TEAMS = '''
+query GetTeams($filters: TeamsInputFilters) {
+    teams(filters: $filters) {
+        edges {
+            node {
+                id
+                name
+                roles {
+                    id
+                    name
+                }
+                supervisorId
+                users { id }
+            }
+        }
+    }
+}
+'''
+
+ATTACH_PERMISSION_GROUP_TO_ROLE = '''
+mutation AttachPermissionGroupToRole($input: PermissionGroupToRoleInput!) {
+    attachPermissionGroupToRole(input: $input) {
+        role {
+            id
+            name
+        }
+    }
+}
+'''
+
+ADD_USER_TO_TEAM = '''
+mutation AddUserToTeam($input: TeamToUserInput!) {
+    addUserToTeam(input: $input) {
+        teamId
+        userId
+    }
+}
+'''
+
+GET_USERS = """
+query GetUsers($filters: UserInputFilters, $sort: [UserSortEnum]) {
+    users(sort: $sort, filters: $filters) {
+        edges{
+            node {
+                id
+                name
+                organizationId
+                roles {
+                    id
+                    name
+                }
+            }
+        }
+    }
+}
+"""

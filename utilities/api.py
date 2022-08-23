@@ -1,11 +1,10 @@
 import os
-import json
 import logging
 import requests
 from urllib.parse import urljoin
 
-AUTH0_DOMAIN = 'firstresonance.auth0.com'
-API_URL = os.getenv('ION_API_URI', 'https://api.firstresonance.io/')
+AUTH0_DOMAIN = os.getenv('ION_AUTH_SERVER', 'staging-auth.buildwithion.com')
+API_URL = os.getenv('ION_API_URI', 'https://staging-api.buildwithion.com')
 
 
 class Api(object):
@@ -13,21 +12,21 @@ class Api(object):
         self.client_id = client_id
         self.client_secret = client_secret
         self.audience = os.getenv(
-            'ION_API_AUDIENCE', 'https://trial-api.firstresonance.io/')
+            'ION_API_AUDIENCE', API_URL)
         self.access_token = self.get_access_token()
 
     def get_access_token(self) -> str:
         payload = {
+            'grant_type': 'client_credentials',
             'client_id': self.client_id,
             'client_secret': self.client_secret,
             'audience': self.audience,
-            'grant_type': 'client_credentials'
         }
 
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/x-www-form-urlencoded'}
 
-        auth_url = urljoin(f'https://{AUTH0_DOMAIN}', 'oauth/token')
-        res = requests.post(auth_url, json=payload, headers=headers)
+        auth_url = urljoin(f'https://{AUTH0_DOMAIN}', '/auth/realms/api-keys/protocol/openid-connect/token', 'oauth/token')
+        res = requests.post(auth_url, data=payload, headers=headers)
         return res.json()['access_token']
 
     def _get_headers(self) -> dict:
