@@ -4,7 +4,7 @@ import os
 from dataclasses import dataclass
 
 
-class FileAttachmentHelper:    
+class FileAttachmentHelper:
     def upload_file_to_s3(self, file_attachment: dict, file_object: bytes):
         """Upload file to s3 with signed URL."""
         with requests.put(
@@ -22,6 +22,8 @@ class FileAttachmentHelper:
         # with open('procedure_export/temp-files/' + file_name, 'wb') as f:
         #     f.write(response.content)
 
-    def upload_file_attachment(self, file_object: bytes, file_name: str, file_attachment: dict):
+    def upload_file_attachment(
+        self, file_object: bytes, file_name: str, file_attachment: dict
+    ):
         # with open(file_name, 'rb') as f:
         self.upload_file_to_s3(file_attachment, file_object)

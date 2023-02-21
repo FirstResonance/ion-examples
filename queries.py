@@ -1,6 +1,6 @@
 """GraphQL Query and Mutation constants."""
 
-GET_RUNS = '''
+GET_RUNS = """
     query GetRuns($filters: RunsInputFilters, $sort: [RunSortEnum]) {
         runs(sort: $sort, filters: $filters) {
             edges{node {
@@ -8,9 +8,9 @@ GET_RUNS = '''
             }}
         }
     }
-'''
+"""
 
-GET_RUN = '''
+GET_RUN = """
     query GetRun($id: ID!) {
         run(id: $id) {
         id steps {
@@ -20,9 +20,9 @@ GET_RUN = '''
         }
         }
     }
-'''
+"""
 
-CREATE_RUN_STEP = '''
+CREATE_RUN_STEP = """
     mutation CreateRunStep($input: CreateRunStepInput!) {
         createRunStep(input: $input) {
             step {
@@ -30,10 +30,10 @@ CREATE_RUN_STEP = '''
             }
         }
     }
-'''
+"""
 
 
-CREATE_RUN_STEP_FIELD = '''
+CREATE_RUN_STEP_FIELD = """
     mutation CreateRunStepField($input: CreateRunStepFieldInput!) {
         createRunStepField(input: $input) {
             runStepField {
@@ -41,9 +41,9 @@ CREATE_RUN_STEP_FIELD = '''
             }
         }
     }
-'''
+"""
 
-UPDATE_RUN_STEP_FIELD_VALUE = '''
+UPDATE_RUN_STEP_FIELD_VALUE = """
     mutation UpdateRunStepFieldValue($input: UpdateRunStepFieldValueInput!) {
         updateRunStepFieldValue(input: $input) {
             runStepField {
@@ -51,10 +51,10 @@ UPDATE_RUN_STEP_FIELD_VALUE = '''
             }
         }
     }
-'''
+"""
 
 
-UPDATE_RUN_STEP = '''
+UPDATE_RUN_STEP = """
     mutation UpdateRunStep($input: UpdateRunStepInput!) {
         updateRunStep(input: $input) {
             runStep {
@@ -62,9 +62,9 @@ UPDATE_RUN_STEP = '''
             }
         }
     }
-'''
+"""
 
-GET_PERMISSION_GROUPS = '''
+GET_PERMISSION_GROUPS = """
     query GetPermissionGroups($filters: PermissionGroupsInputFilters, $sort: [PermissionGroupSortEnum]) {
     permissionGroups(sort: $sort, filters: $filters) {
         edges {
@@ -76,9 +76,9 @@ GET_PERMISSION_GROUPS = '''
         }
     }
     }
-'''
+"""
 
-GET_ROLES = '''
+GET_ROLES = """
     query GetRoles($filters: RolesInputFilters) {
         roles(filters: $filters) {
             edges {
@@ -89,9 +89,9 @@ GET_ROLES = '''
             }
         }
     }
-'''
+"""
 
-GET_TEAMS = '''
+GET_TEAMS = """
     query GetTeams($filters: TeamsInputFilters) {
         teams(filters: $filters) {
             edges {
@@ -108,9 +108,9 @@ GET_TEAMS = '''
             }
         }
     }
-'''
+"""
 
-ATTACH_PERMISSION_GROUP_TO_ROLE = '''
+ATTACH_PERMISSION_GROUP_TO_ROLE = """
     mutation AttachPermissionGroupToRole($input: PermissionGroupToRoleInput!) {
         attachPermissionGroupToRole(input: $input) {
             role {
@@ -119,16 +119,16 @@ ATTACH_PERMISSION_GROUP_TO_ROLE = '''
             }
         }
     }
-'''
+"""
 
-ADD_USER_TO_TEAM = '''
+ADD_USER_TO_TEAM = """
     mutation AddUserToTeam($input: TeamToUserInput!) {
         addUserToTeam(input: $input) {
             teamId
             userId
         }
     }
-'''
+"""
 
 GET_USERS = """
     query GetUsers($filters: UserInputFilters, $sort: [UserSortEnum]) {
@@ -161,7 +161,7 @@ CREATE_MBOM_ITEM_REFERENCE_DESIGNATOR = """
     }
 """
 
-GET_PROCEDURE = '''
+GET_PROCEDURE = """
     query GetProcedure($id: ID!) {
         procedure(id: $id) {
             id
@@ -200,7 +200,7 @@ GET_PROCEDURE = '''
             }
         }
     }
-'''
+"""
 
 CREATE_PROCEDURE = """
     mutation CreateProcedure(

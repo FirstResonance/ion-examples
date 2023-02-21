@@ -3,12 +3,14 @@ import logging
 import requests
 from urllib.parse import urljoin
 
-AUTH0_DOMAIN = os.getenv('ION_AUTH_SERVER', 'staging-auth.buildwithion.com')
-API_URL = os.getenv('ION_API_URI', 'https://staging-api.buildwithion.com')
+AUTH0_DOMAIN = os.getenv("ION_AUTH_SERVER", "staging-auth.buildwithion.com")
+API_URL = os.getenv("ION_API_URI", "https://staging-api.buildwithion.com")
 
 
 class Api(object):
-    def __init__(self, client_id, client_secret, auth_server=None, api_uri=None) -> None:
+    def __init__(
+        self, client_id, client_secret, auth_server=None, api_uri=None
+    ) -> None:
         self.client_id = client_id
         self.client_secret = client_secret
         self.api_url = api_uri or API_URL
@@ -18,19 +20,23 @@ class Api(object):
 
     def get_access_token(self) -> str:
         payload = {
-            'grant_type': 'client_credentials',
-            'client_id': self.client_id,
-            'client_secret': self.client_secret,
-            'audience': self.audience,
+            "grant_type": "client_credentials",
+            "client_id": self.client_id,
+            "client_secret": self.client_secret,
+            "audience": self.audience,
         }
 
-        headers = {'content-type': 'application/x-www-form-urlencoded'}
+        headers = {"content-type": "application/x-www-form-urlencoded"}
 
-        auth_url = urljoin(f'https://{self.auth_server}', '/auth/realms/api-keys/protocol/openid-connect/token', 'oauth/token')
+        auth_url = urljoin(
+            f"https://{self.auth_server}",
+            "/auth/realms/api-keys/protocol/openid-connect/token",
+            "oauth/token",
+        )
         res = requests.post(auth_url, data=payload, headers=headers)
         if res.status_code == 400:
-            logging.error('---AN ERROR OCCURRED IN GETTING THE ACCESS TOKEN---')
-        return res.json()['access_token']
+            logging.error("---AN ERROR OCCURRED IN GETTING THE ACCESS TOKEN---")
+        return res.json()["access_token"]
 
     def _get_headers(self) -> dict:
         """
@@ -39,8 +45,10 @@ class Api(object):
         Returns:
             dict: Return API request headers with authorization token.
         """
-        return {'Authorization': f'{self.access_token}',
-                'Content-Type': 'application/json'}
+        return {
+            "Authorization": f"{self.access_token}",
+            "Content-Type": "application/json",
+        }
 
     def request(self, query_info: dict) -> dict:
         """
@@ -53,9 +61,11 @@ class Api(object):
             dict: API response from request.
         """
         headers = self._get_headers()
-        res = requests.post(urljoin(self.api_url, 'graphql'), headers=headers, json=query_info)
+        res = requests.post(
+            urljoin(self.api_url, "graphql"), headers=headers, json=query_info
+        )
         resp_value = res.json()
-        if resp_value.get('errors'):
-            logging.error('---AN ERROR OCCURRED IN THE API REQUEST---')
+        if resp_value.get("errors"):
+            logging.error("---AN ERROR OCCURRED IN THE API REQUEST---")
             logging.error(resp_value)
         return resp_value

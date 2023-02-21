@@ -31,45 +31,45 @@ def upload_file_to_step(api: Api, run_id: int, file_path: str) -> bool:
         bool: True if the upload succeeded
     """
     # Get the run you want to upload to, so we can find the step to upload to
-    r = api.request({
-        'query': queries.GET_RUN,
-        'variables': {'id': run_id}
-    })
-    run = r['data']['run']
-    first_step = run['steps'][0]
+    r = api.request({"query": queries.GET_RUN, "variables": {"id": run_id}})
+    run = r["data"]["run"]
+    first_step = run["steps"][0]
 
     # Get the target URL we can upload our file to by using the
     # createFileAttachment API mutation. We are making the request against
     # the step's entityId, which is how files are associated to objects in ion
     attachment_data = {
-        'input': {
-            'entityId': first_step['entityId'],
-            'filename': os.path.basename(file_path)
-            }
+        "input": {
+            "entityId": first_step["entityId"],
+            "filename": os.path.basename(file_path),
         }
-    upload_request = api.request({
-        'query': queries.CREATE_FILE_ATTACHMENT,
-        'variables': attachment_data
-    })
-    url = upload_request['uploadUrl']
+    }
+    upload_request = api.request(
+        {"query": queries.CREATE_FILE_ATTACHMENT, "variables": attachment_data}
+    )
+    url = upload_request["uploadUrl"]
 
     # Now, let's upload the file!
-    r = requests.put(url, data=open(file_path, 'rb'))
+    r = requests.put(url, data=open(file_path, "rb"))
     return r.ok
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Upload a file to the first step in a run')
-    parser.add_argument('file_path', type=str,
-                        help='The path of the file you want to upload to the step.')
-    parser.add_argument('run_id', type=str,
-                        help='The run to upload the file to.')
-    parser.add_argument('--client_id', type=str, help='Your API client ID')
+        description="Upload a file to the first step in a run"
+    )
+    parser.add_argument(
+        "file_path",
+        type=str,
+        help="The path of the file you want to upload to the step.",
+    )
+    parser.add_argument("run_id", type=str, help="The run to upload the file to.")
+    parser.add_argument("--client_id", type=str, help="Your API client ID")
     args = parser.parse_args()
-    client_secret = getpass('Client secret: ')
+    client_secret = getpass("Client secret: ")
     if not args.client_id or not client_secret:
-        raise argparse.ArgumentError('Must input client ID and '
-                                     'client secret to run import')
+        raise argparse.ArgumentError(
+            "Must input client ID and " "client secret to run import"
+        )
     api = Api(client_id=args.client_id, client_secret=client_secret)
     upload_file_to_step(api, args.run_id, args.file_path)
