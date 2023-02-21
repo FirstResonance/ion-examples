@@ -130,3 +130,6 @@ dmypy.json
 
 # Config/secret files
 config.py
+
+# venv
+ion_examples/
