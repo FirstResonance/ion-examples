@@ -7,6 +7,8 @@ import inspect
 import re
 import json
 
+
+# Reset the path so it can be run from the parent directory
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
@@ -17,18 +19,28 @@ from utilities.file_attachment_helper import FileAttachmentHelper
 import queries
 from config import config
 
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    datefmt="%a, %d %b %Y %H:%M:%S",
+    filename="procedure_export/log.txt",
+    filemode="w",
+)
+
 file_attachment_helper = FileAttachmentHelper()
 
 
 def get_procedure_data(api: Api, procedure_id: int):
-    """
-    Get procedure info for given mbom item id.
-    """
+    """Get procedure info given procedure id."""
     request_body = {"query": queries.GET_PROCEDURE, "variables": {"id": procedure_id}}
     return api.request(request_body)["data"]["procedure"]
 
 
 def create_procedure_container(api: Api, source_procedure_data: dict, new_title: str):
+    """Create new procedure."""
     request_body = {
         "query": queries.CREATE_PROCEDURE,
         "variables": {
@@ -41,6 +53,7 @@ def create_procedure_container(api: Api, source_procedure_data: dict, new_title:
 
 
 def create_ion_file_attachment(api: Api, file_name: str, step_entity_id: int):
+    """Create new file attachment in ION."""
     request_body = {
         "query": queries.CREATE_ASSET,
         "variables": {"input": {"filename": file_name, "entityId": step_entity_id}},
@@ -49,6 +62,7 @@ def create_ion_file_attachment(api: Api, file_name: str, step_entity_id: int):
 
 
 def add_asset(api: Api, asset: dict, step: dict):
+    """Download file from source env, upload to target, and add as asset on the step."""
     file_name = asset["filename"]
     file_object = file_attachment_helper.download_file_attachment(
         asset["downloadUrl"], asset["filename"]
@@ -61,6 +75,7 @@ def add_asset(api: Api, asset: dict, step: dict):
 
 
 def get_file_attachment_info(api: Api, file_attachment_id: int):
+    """Get info for given file attachment id."""
     request_body = {
         "query": queries.GET_FILE_ATTACHMENT,
         "variables": {"id": file_attachment_id},
@@ -71,6 +86,7 @@ def get_file_attachment_info(api: Api, file_attachment_id: int):
 def update_step_slate_content(
     api: Api, etag: str, step_id: str, new_slate_content: str
 ):
+    """Update step slate content."""
     request_body = {
         "query": queries.UPDATE_STEP,
         "variables": {
@@ -83,6 +99,8 @@ def update_step_slate_content(
 def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
 ):
+    """Adds steps to newly created procedure."""
+    logger.info(f"Adding {len(source_procedure_data['steps'])} to procedure")
     for step in source_procedure_data["steps"]:
         request_body = {
             "query": queries.CREATE_STEP,
@@ -99,18 +117,26 @@ def add_steps(
             },
         }
         new_step = api.request(request_body)["data"]["createStep"]["step"]
-        # Add file attachments
-        slate_content = step["slateContent"]
-        for asset in step["assets"]:
-            new_file_attachment = add_asset(api, asset, new_step)
+        logger.info(f"Added new step: {new_step}")
+        # Skipping adding step assets for now b/c it gets handled below in the slate content
+        # logger.info(f"Transitioning {len(step['assets'])} step assets.")
+        # for asset in step["assets"]:
+        #     new_file_attachment = add_asset(api, asset, new_step)
         # replace any references to old file attachment in step content
+        logger.info(f"Replacing step slate content references to file attachments")
+        slate_content = step["slateContent"]
         if slate_content:
             expression = "reference.: (?P<id>\d*), "
+            # Need to convert first to a string (json.dumps) so the text can be replaced.
+            # Uses a regex match to find all references
             for match in re.finditer(expression, json.dumps(slate_content)):
+                # Getting existing file attachment data
                 existing_file_attachment = get_file_attachment_info(
                     source_api, match.groupdict()["id"]
                 )
-                new_file_attachment = add_asset(api, asset, new_step)
+                # Uploading file to target env
+                new_file_attachment = add_asset(api, existing_file_attachment, new_step)
+                # Replace slate content references
                 new_slate_content = json.dumps(slate_content).replace(
                     match.group(),
                     f"reference\": {new_file_attachment['fileAttachment']['id']}, ",
@@ -131,36 +157,45 @@ def create_procedure_from_source_data(
     """
     new_procedure = create_procedure_container(api, source_procedure_data, new_title)
     new_procedure_id = new_procedure["data"]["createProcedure"]["procedure"]["id"]
+    logger.info(f"Created new procedure: {new_procedure_id}")
     new_steps = add_steps(api, source_procedure_data, new_procedure_id, source_api)
-    print(f"New procedure: {new_procedure_id}")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Migrate a procedure from one environment to another."
     )
-    source_auth_server = config["SOURCE_ION_AUTH_SERVER"]
-    source_api_uri = config["SOURCE_ION_API_URI"]
-    source_client_id = config["SOURCE_ION_CLIENT_ID"]
-    source_client_secret = config["SOURCE_ION_CLIENT_SECRET"]
-    target_auth_server = config["TARGET_ION_AUTH_SERVER"]
-    target_api_uri = config["TARGET_ION_API_URI"]
-    target_client_id = config["TARGET_ION_CLIENT_ID"]
-    target_client_secret = config["TARGET_ION_CLIENT_SECRET"]
-    # do a check on config variables
-    source_api = Api(
-        client_id=source_client_id,
-        client_secret=source_client_secret,
-        auth_server=source_auth_server,
-        api_uri=source_api_uri,
-    )
-    target_api = Api(
-        client_id=target_client_id,
-        client_secret=target_client_secret,
-        auth_server=target_auth_server,
-        api_uri=target_api_uri,
-    )
-    procedure_id = input("Input the procedure ID that you would like to export: ")
-    new_title = input("Enter an optional title for the new procedure: ")
-    procedure_data = get_procedure_data(source_api, procedure_id)
-    create_procedure_from_source_data(target_api, procedure_data, new_title, source_api)
+    try:
+        source_auth_server = config["SOURCE_ION_AUTH_SERVER"]
+        source_api_uri = config["SOURCE_ION_API_URI"]
+        source_client_id = config["SOURCE_ION_CLIENT_ID"]
+        source_client_secret = config["SOURCE_ION_CLIENT_SECRET"]
+        target_auth_server = config["TARGET_ION_AUTH_SERVER"]
+        target_api_uri = config["TARGET_ION_API_URI"]
+        target_client_id = config["TARGET_ION_CLIENT_ID"]
+        target_client_secret = config["TARGET_ION_CLIENT_SECRET"]
+    except Exception as e:
+        raise (f"Error with the config settings: {e}")
+
+    try:
+        source_api = Api(
+            client_id=source_client_id,
+            client_secret=source_client_secret,
+            auth_server=source_auth_server,
+            api_uri=source_api_uri,
+        )
+        target_api = Api(
+            client_id=target_client_id,
+            client_secret=target_client_secret,
+            auth_server=target_auth_server,
+            api_uri=target_api_uri,
+        )
+        procedure_id = input("Input the procedure ID that you would like to export: ")
+        new_title = input("Enter an optional title for the new procedure: ")
+        procedure_data = get_procedure_data(source_api, procedure_id)
+        create_procedure_from_source_data(
+            target_api, procedure_data, new_title, source_api
+        )
+        print("Completed procedure export.")
+    except Exception as e:
+        raise (f"Error occurred while exporting procedure: {e}")
