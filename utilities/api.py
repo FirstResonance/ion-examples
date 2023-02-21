@@ -8,11 +8,12 @@ API_URL = os.getenv('ION_API_URI', 'https://staging-api.buildwithion.com')
 
 
 class Api(object):
-    def __init__(self, client_id, client_secret) -> None:
+    def __init__(self, client_id, client_secret, auth_server=None, api_uri=None) -> None:
         self.client_id = client_id
         self.client_secret = client_secret
-        self.audience = os.getenv(
-            'ION_API_AUDIENCE', API_URL)
+        self.api_url = api_uri or API_URL
+        self.audience = self.api_url
+        self.auth_server = auth_server or AUTH0_DOMAIN
         self.access_token = self.get_access_token()
 
     def get_access_token(self) -> str:
@@ -25,8 +26,10 @@ class Api(object):
 
         headers = {'content-type': 'application/x-www-form-urlencoded'}
 
-        auth_url = urljoin(f'https://{AUTH0_DOMAIN}', '/auth/realms/api-keys/protocol/openid-connect/token', 'oauth/token')
+        auth_url = urljoin(f'https://{self.auth_server}', '/auth/realms/api-keys/protocol/openid-connect/token', 'oauth/token')
         res = requests.post(auth_url, data=payload, headers=headers)
+        if res.status_code == 400:
+            logging.error('---AN ERROR OCCURRED IN GETTING THE ACCESS TOKEN---')
         return res.json()['access_token']
 
     def _get_headers(self) -> dict:
@@ -50,7 +53,7 @@ class Api(object):
             dict: API response from request.
         """
         headers = self._get_headers()
-        res = requests.post(urljoin(API_URL, 'graphql'), headers=headers, json=query_info)
+        res = requests.post(urljoin(self.api_url, 'graphql'), headers=headers, json=query_info)
         resp_value = res.json()
         if resp_value.get('errors'):
             logging.error('---AN ERROR OCCURRED IN THE API REQUEST---')
