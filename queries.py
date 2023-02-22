@@ -321,3 +321,36 @@ GET_FILE_ATTACHMENT = """
         }
     }
 """
+
+
+GET_PART_INVENTORY = """
+    query PartInventory($id: ID!) {
+        partInventory(id: $id) {
+            _etag
+            id
+            part {
+                description
+                partNumber
+                revision
+            }
+            quantity
+        }
+    }
+"""
+
+UPDATE_PART_INVENTORY = """
+    mutation UpdatePartInventory($input: UpdatePartInventoryInput!) {
+        updatePartInventory(input: $input) {
+            partInventory {
+                _etag
+                id
+                part {
+                    description
+                    partNumber
+                    revision
+                }
+                quantity
+            }
+        }
+    }
+"""
