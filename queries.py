@@ -166,6 +166,8 @@ GET_PROCEDURE = """
         procedure(id: $id) {
             id
             description
+            familyId
+            labels
             type
             title
             steps {
@@ -217,6 +219,7 @@ CREATE_PROCEDURE = """
         ) {
             procedure {
                 id
+                familyId
             }
         }
     }
@@ -350,6 +353,40 @@ UPDATE_PART_INVENTORY = """
                     revision
                 }
                 quantity
+            }
+        }
+    }
+"""
+
+ADD_LABEL_TO_PROCEDURE_FAMILY = """
+    mutation AddLabelToProcedureFamily($input: LabelToProcedureFamilyInput!) {
+        addLabelToProcedureFamily(input: $input) {
+            labelId familyId
+        }
+    }
+"""
+
+CREATE_LABEL = """
+    mutation CreateLabel($input: CreateLabelInput!) {
+        createLabel(input: $input) {
+            label {
+                id value _etag createdById updatedById
+            }
+        }
+    }
+"""
+
+GET_LABELS = """
+    query GetLabels($filters: LabelsInputFilters) {
+        labels(filters: $filters) {
+            edges {
+                node {
+                    id
+                    _etag
+                    value
+                    createdById
+                    updatedById
+                }
             }
         }
     }

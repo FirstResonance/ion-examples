@@ -49,7 +49,7 @@ def create_procedure_container(api: Api, source_procedure_data: dict, new_title:
             "type": source_procedure_data["type"],
         },
     }
-    return api.request(request_body)
+    return api.request(request_body)["data"]["createProcedure"]["procedure"]
 
 
 def create_ion_file_attachment(api: Api, file_name: str, step_entity_id: int):
@@ -100,7 +100,7 @@ def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
 ):
     """Adds steps to newly created procedure."""
-    logger.info(f"Adding {len(source_procedure_data['steps'])} to procedure")
+    logger.info(f"Adding {len(source_procedure_data['steps'])} step to procedure")
     for step in source_procedure_data["steps"]:
         request_body = {
             "query": queries.CREATE_STEP,
@@ -148,6 +148,48 @@ def add_steps(
                     json.loads(new_slate_content),
                 )
 
+def get_label(api: Api, value: str):
+    # first check if the label already exists
+    request_body = {
+            "query": queries.GET_LABELS,
+            "variables": {
+                "filters": {
+                    "value": {
+                        "eq": value
+                    }
+                }
+            },
+        }
+    existing_labels = api.request(request_body)["data"]["labels"]["edges"]
+    if existing_labels:
+        return existing_labels[0]["node"]
+    else:
+        new_label_request_body = {
+            "query": queries.CREATE_LABEL,
+            "variables": {
+                "input": {
+                    "value": value
+                }
+            }
+        }
+        new_label = api.request(new_label_request_body)["data"]
+        return new_label["createLabel"]["label"]
+
+def add_labels(api: Api, labels: list, procedure_family_id: int):
+    for label in labels:
+        logger.info(f"Adding {label} label to procedure.")
+        new_label = get_label(api, label)
+        request_body = {
+            "query": queries.ADD_LABEL_TO_PROCEDURE_FAMILY,
+            "variables": {
+                "input": {
+                    "labelId": new_label["id"],
+                    "familyId": procedure_family_id
+                }
+            },
+        }
+        api.request(request_body)["data"]
+    
 
 def create_procedure_from_source_data(
     api: Api, source_procedure_data: dict, new_title: str, source_api: Api
@@ -156,7 +198,9 @@ def create_procedure_from_source_data(
     Create new procedure in target environment from source data.
     """
     new_procedure = create_procedure_container(api, source_procedure_data, new_title)
-    new_procedure_id = new_procedure["data"]["createProcedure"]["procedure"]["id"]
+    labels = source_procedure_data["labels"]
+    add_labels(api, labels, new_procedure["familyId"])
+    new_procedure_id = new_procedure["id"]
     logger.info(f"Created new procedure: {new_procedure_id}")
     new_steps = add_steps(api, source_procedure_data, new_procedure_id, source_api)
 
@@ -198,4 +242,4 @@ if __name__ == "__main__":
         )
         print("Completed procedure export.")
     except Exception as e:
-        raise (f"Error occurred while exporting procedure: {e}")
+        raise(f"Error occurred while exporting procedure: {e}")
