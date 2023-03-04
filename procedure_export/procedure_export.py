@@ -111,22 +111,46 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
             "input": input
         },
     }
-    test = api.request(request_body)
+    api.request(request_body)
+
+def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
+    for column in columns["edges"]:
+        columns_input = column["node"]
+        columns_input["stepId"] = step_id
+        column_body = {
+            "query": queries.CREATE_DATAGRID_COLUMN,
+            "variables": {
+                "input": columns_input
+            }
+        }
+        api.request(column_body)
+    for row in rows["edges"]:
+        rows_input = row["node"]
+        rows_input["stepId"] = step_id
+        del rows_input["values"]
+        rows_body = {
+            "query": queries.CREATE_DATAGRID_ROW,
+            "variables": {
+                "input": rows_input
+            }
+        }
+        api.request(rows_body)
 
 def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, parent_step_id: int=None):
+    create_step_input = {
+        "slateContent": step["slateContent"],
+        "title": step["title"],
+        "procedureId": procedure_id,
+        "leadTime": step["leadTime"],
+        "locationId": step["locationId"],
+        "locationSubtypeId": step["locationSubtypeId"],
+        "type": step["type"],
+        "parentId": parent_step_id
+    }
     request_body = {
         "query": queries.CREATE_STEP,
         "variables": {
-            "input": {
-                "slateContent": step["slateContent"],
-                "title": step["title"],
-                "procedureId": procedure_id,
-                "leadTime": step["leadTime"],
-                "locationId": step["locationId"],
-                "locationSubtypeId": step["locationSubtypeId"],
-                "type": step["type"],
-                "parentId": parent_step_id
-            }
+            "input": create_step_input
         },
     }
     new_step = api.request(request_body)["data"]["createStep"]["step"]
@@ -162,10 +186,13 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
             )
     for field in step["fields"]:
         add_field_to_step(api, field, new_step["id"])
-    ### Add child check here
+    # Add child steps
     if not parent_step_id:
         for child_step in step["steps"]:
             add_step(api, child_step, source_procedure_data, procedure_id, source_api, new_step["id"])
+    # Create data grid
+    if step["type"] == "DATAGRID":
+        add_datagrid_to_step(api, step["datagridColumns"], step["datagridRows"], new_step["id"])
 
 
 def add_steps(

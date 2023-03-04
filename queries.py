@@ -183,6 +183,24 @@ GET_PROCEDURE = """
                     s3Bucket
                     downloadUrl
                 }
+                datagridColumns {
+                        edges {
+                            node {
+                                index
+                                header
+                                type
+                                signoffRoleId
+                            }
+                        }
+                    }
+                datagridRows {
+                    edges {
+                        node {
+                            index
+                            values { value columnId type }
+                        }
+                    }
+                }
                 entityId
                 id
                 leadTime
@@ -198,6 +216,26 @@ GET_PROCEDURE = """
                         s3Key
                         s3Bucket
                         downloadUrl
+                    }
+                    datagridColumns {
+                        edges {
+                            node {
+                                index
+                                header
+                                type
+                                signoffRoleId
+                            }
+                        }
+                    }
+                    datagridRows {
+                        edges {
+                            node {
+                                allowNotApplicable
+                                index
+                                required
+                                values { value columnId type }
+                            }
+                        }
                     }
                     entityId
                     id
@@ -447,6 +485,41 @@ CREATE_STEP_FIELD = """
                 type
                 unit
                 updatedById
+            }
+        }
+    }
+"""
+
+CREATE_DATAGRID_COLUMN = """
+    mutation CreateDatagridColumn($input: CreateDatagridColumnInput!) {
+        createDatagridColumn(input: $input) {
+            datagridColumn {
+                LastSessionId
+                editable
+                header
+                id
+                index
+                options
+                runStepId
+                settable
+                signoffRoleId
+                stepId
+                type
+                unit
+            }
+        }
+    }
+"""
+
+CREATE_DATAGRID_ROW = """
+    mutation CreateDatagridRow($input: CreateDatagridRowInput!) {
+        createDatagridRow(input: $input) {
+            datagridRow {
+                id
+                index
+                required
+                runStepId
+                stepId
             }
         }
     }
