@@ -152,7 +152,7 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
             }
             api.request(value_body)
 
-def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, parent_step_id: int=None):
+def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, step_map: dict, parent_step_id: int=None):
     create_step_input = {
         "slateContent": step["slateContent"],
         "title": step["title"],
@@ -170,6 +170,7 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
         },
     }
     new_step = api.request(request_body)["data"]["createStep"]["step"]
+    step_map[step["id"]] = new_step["id"]
     logger.info(f"Added new step: {new_step}")
     # Skipping adding step assets for now b/c it gets handled below in the slate content
     # logger.info(f"Transitioning {len(step['assets'])} step assets.")
@@ -205,19 +206,38 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
     # Add child steps
     if not parent_step_id:
         for child_step in step["steps"]:
-            add_step(api, child_step, source_procedure_data, procedure_id, source_api, new_step["id"])
+            add_step(api, child_step, source_procedure_data, procedure_id, source_api, step_map, new_step["id"])
     # Create data grid
     if step["type"] == "DATAGRID":
         add_datagrid_to_step(api, step["datagridColumns"], step["datagridRows"], new_step["id"])
+    return new_step
 
+def add_dependencies(
+    api: Api, step_map: dict, dependencies: dict
+):
+    for step_id, upstream_step_id in dependencies.items():
+        value_body = {
+                "query": queries.CREATE_STEP_EDGE,
+                "variables": {
+                    "stepId": step_map[step_id],
+                    "upstreamStepId": step_map[upstream_step_id]
+                }
+            }
+        api.request(value_body)
 
 def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
 ):
     """Adds steps to newly created procedure."""
     logger.info(f"Adding {len(source_procedure_data['steps'])} step to procedure")
+    step_map = {}
+    dependencies = {}
     for step in source_procedure_data["steps"]:
-        add_step(api, step, source_procedure_data, procedure_id, source_api)
+        for upstream_step_id in step["upstreamStepIds"]:
+            dependencies[step["id"]] = upstream_step_id
+        add_step(api, step, source_procedure_data, procedure_id, source_api, step_map)
+        add_dependencies(api, step_map, dependencies)
+
 
 def get_label(api: Api, value: str):
     # first check if the label already exists

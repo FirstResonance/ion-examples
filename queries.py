@@ -255,6 +255,7 @@ GET_PROCEDURE = """
                     slateContent
                     title
                     type
+                    upstreamStepIds
                     fields {
                         id
                         type
@@ -270,6 +271,7 @@ GET_PROCEDURE = """
                 }
                 title
                 type
+                upstreamStepIds
                 fields {
                     id
                     type
@@ -550,6 +552,16 @@ SET_DATAGRID_VALUE = """
                 rowId
                 type
                 value
+            }
+        }
+    }
+"""
+
+CREATE_STEP_EDGE = """
+    mutation CreateStepEdge($stepId: ID!, $upstreamStepId: ID!) {
+        createStepEdge(input: {stepId: $stepId, upstreamStepId: $upstreamStepId}) {
+            stepEdge {
+                id stepId upstreamStepId createdById updatedById
             }
         }
     }
