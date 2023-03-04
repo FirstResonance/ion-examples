@@ -114,27 +114,43 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
     api.request(request_body)
 
 def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
+    column_map = {}
     for column in columns["edges"]:
-        columns_input = column["node"]
-        columns_input["stepId"] = step_id
+        column_input = column["node"].copy()
+        column_input["stepId"] = step_id
+        del column_input["id"]
         column_body = {
             "query": queries.CREATE_DATAGRID_COLUMN,
             "variables": {
-                "input": columns_input
+                "input": column_input
             }
         }
-        api.request(column_body)
+        new_column = api.request(column_body)["data"]["createDatagridColumn"]["datagridColumn"]
+        column_map[column["node"]["id"]] = new_column["id"]
     for row in rows["edges"]:
-        rows_input = row["node"]
+        rows_input = row["node"].copy()
         rows_input["stepId"] = step_id
         del rows_input["values"]
+        del rows_input["id"]
         rows_body = {
             "query": queries.CREATE_DATAGRID_ROW,
             "variables": {
                 "input": rows_input
             }
         }
-        api.request(rows_body)
+        new_row = api.request(rows_body)["data"]["createDatagridRow"]["datagridRow"]
+        for value in row["node"]["values"]:
+            value_body = {
+                "query": queries.SET_DATAGRID_VALUE,
+                "variables": {
+                    "input": {
+                        "rowId": new_row["id"],
+                        "columnId": column_map[value["columnId"]],
+                        "value": value["value"]
+                    }
+                }
+            }
+            api.request(value_body)
 
 def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, parent_step_id: int=None):
     create_step_input = {

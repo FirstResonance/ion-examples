@@ -61,6 +61,7 @@ class Api(object):
             dict: API response from request.
         """
         headers = self._get_headers()
+        logging.info(f"Calling {self.api_url} with {query_info}")
         res = requests.post(
             urljoin(self.api_url, "graphql"), headers=headers, json=query_info
         )

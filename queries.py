@@ -186,17 +186,22 @@ GET_PROCEDURE = """
                 datagridColumns {
                         edges {
                             node {
+                                id
                                 index
                                 header
-                                type
+                                options
                                 signoffRoleId
+                                type
                             }
                         }
                     }
                 datagridRows {
                     edges {
                         node {
+                            id
+                            allowNotApplicable
                             index
+                            required
                             values { value columnId type }
                         }
                     }
@@ -220,16 +225,19 @@ GET_PROCEDURE = """
                     datagridColumns {
                         edges {
                             node {
+                                id
                                 index
                                 header
-                                type
+                                options
                                 signoffRoleId
+                                type
                             }
                         }
                     }
                     datagridRows {
                         edges {
                             node {
+                                id
                                 allowNotApplicable
                                 index
                                 required
@@ -520,6 +528,28 @@ CREATE_DATAGRID_ROW = """
                 required
                 runStepId
                 stepId
+            }
+        }
+    }
+"""
+
+SET_DATAGRID_VALUE = """
+    mutation SetDatagridValue($input: SetDatagridValueInput!) {
+        setDatagridValue(input: $input) {
+            datagridValue {
+                _etag
+                columnId
+                id
+                ionValue {
+                    ... on User {
+                        id
+                        email
+                    }
+                }
+                notApplicable
+                rowId
+                type
+                value
             }
         }
     }
