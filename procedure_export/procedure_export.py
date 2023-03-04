@@ -47,9 +47,12 @@ def create_procedure_container(api: Api, source_procedure_data: dict, new_title:
             "title": new_title or source_procedure_data["title"],
             "description": source_procedure_data["description"],
             "type": source_procedure_data["type"],
+            "attributes": source_procedure_data["attributes"],
         },
     }
-    return api.request(request_body)["data"]["createProcedure"]["procedure"]
+    new_procedure = api.request(request_body)["data"]["createProcedure"]["procedure"]
+    logger.info(f"New procedure {new_procedure}")
+    return new_procedure
 
 
 def create_ion_file_attachment(api: Api, file_name: str, step_entity_id: int):
@@ -95,6 +98,75 @@ def update_step_slate_content(
     }
     return api.request(request_body)
 
+def add_field_to_step(api: Api, field: dict, step_id: int):
+    input = field
+    field["stepId"] = step_id
+    # remove nulls
+    for key, value in list(input.items()):
+        if value == None or key in ["id", "validations"]:
+            del input[key]
+    request_body = {
+        "query": queries.CREATE_STEP_FIELD,
+        "variables": {
+            "input": input
+        },
+    }
+    test = api.request(request_body)
+
+def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, parent_step_id: int=None):
+    request_body = {
+        "query": queries.CREATE_STEP,
+        "variables": {
+            "input": {
+                "slateContent": step["slateContent"],
+                "title": step["title"],
+                "procedureId": procedure_id,
+                "leadTime": step["leadTime"],
+                "locationId": step["locationId"],
+                "locationSubtypeId": step["locationSubtypeId"],
+                "type": step["type"],
+                "parentId": parent_step_id
+            }
+        },
+    }
+    new_step = api.request(request_body)["data"]["createStep"]["step"]
+    logger.info(f"Added new step: {new_step}")
+    # Skipping adding step assets for now b/c it gets handled below in the slate content
+    # logger.info(f"Transitioning {len(step['assets'])} step assets.")
+    # for asset in step["assets"]:
+    #     new_file_attachment = add_asset(api, asset, new_step)
+    # replace any references to old file attachment in step content
+    logger.info(f"Replacing step slate content references to file attachments")
+    slate_content = step["slateContent"]
+    if slate_content:
+        expression = "reference.: (?P<id>\d*), "
+        # Need to convert first to a string (json.dumps) so the text can be replaced.
+        # Uses a regex match to find all references
+        for match in re.finditer(expression, json.dumps(slate_content)):
+            # Getting existing file attachment data
+            existing_file_attachment = get_file_attachment_info(
+                source_api, match.groupdict()["id"]
+            )
+            # Uploading file to target env
+            new_file_attachment = add_asset(api, existing_file_attachment, new_step)
+            # Replace slate content references
+            new_slate_content = json.dumps(slate_content).replace(
+                match.group(),
+                f"reference\": {new_file_attachment['fileAttachment']['id']}, ",
+            )
+            update_step_slate_content(
+                api,
+                new_step["_etag"],
+                new_step["id"],
+                json.loads(new_slate_content),
+            )
+    for field in step["fields"]:
+        add_field_to_step(api, field, new_step["id"])
+    ### Add child check here
+    if not parent_step_id:
+        for child_step in step["steps"]:
+            add_step(api, child_step, source_procedure_data, procedure_id, source_api, new_step["id"])
+
 
 def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
@@ -102,51 +174,7 @@ def add_steps(
     """Adds steps to newly created procedure."""
     logger.info(f"Adding {len(source_procedure_data['steps'])} step to procedure")
     for step in source_procedure_data["steps"]:
-        request_body = {
-            "query": queries.CREATE_STEP,
-            "variables": {
-                "input": {
-                    "slateContent": step["slateContent"],
-                    "title": step["title"],
-                    "procedureId": procedure_id,
-                    "leadTime": step["leadTime"],
-                    "locationId": step["locationId"],
-                    "locationSubtypeId": step["locationSubtypeId"],
-                    "type": step["type"],
-                }
-            },
-        }
-        new_step = api.request(request_body)["data"]["createStep"]["step"]
-        logger.info(f"Added new step: {new_step}")
-        # Skipping adding step assets for now b/c it gets handled below in the slate content
-        # logger.info(f"Transitioning {len(step['assets'])} step assets.")
-        # for asset in step["assets"]:
-        #     new_file_attachment = add_asset(api, asset, new_step)
-        # replace any references to old file attachment in step content
-        logger.info(f"Replacing step slate content references to file attachments")
-        slate_content = step["slateContent"]
-        if slate_content:
-            expression = "reference.: (?P<id>\d*), "
-            # Need to convert first to a string (json.dumps) so the text can be replaced.
-            # Uses a regex match to find all references
-            for match in re.finditer(expression, json.dumps(slate_content)):
-                # Getting existing file attachment data
-                existing_file_attachment = get_file_attachment_info(
-                    source_api, match.groupdict()["id"]
-                )
-                # Uploading file to target env
-                new_file_attachment = add_asset(api, existing_file_attachment, new_step)
-                # Replace slate content references
-                new_slate_content = json.dumps(slate_content).replace(
-                    match.group(),
-                    f"reference\": {new_file_attachment['fileAttachment']['id']}, ",
-                )
-                update_step_slate_content(
-                    api,
-                    new_step["_etag"],
-                    new_step["id"],
-                    json.loads(new_slate_content),
-                )
+        add_step(api, step, source_procedure_data, procedure_id, source_api)
 
 def get_label(api: Api, value: str):
     # first check if the label already exists

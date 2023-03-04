@@ -164,6 +164,11 @@ CREATE_MBOM_ITEM_REFERENCE_DESIGNATOR = """
 GET_PROCEDURE = """
     query GetProcedure($id: ID!) {
         procedure(id: $id) {
+            attributes {
+                key
+                type
+                value
+            }
             id
             description
             familyId
@@ -186,6 +191,37 @@ GET_PROCEDURE = """
                 parentId
                 position
                 slateContent
+                steps {
+                    assets {
+                        filename
+                        id
+                        s3Key
+                        s3Bucket
+                        downloadUrl
+                    }
+                    entityId
+                    id
+                    leadTime
+                    locationId
+                    locationSubtypeId
+                    parentId
+                    position
+                    slateContent
+                    title
+                    type
+                    fields {
+                        id
+                        type
+                        allowNotApplicable
+                        allowedIonType
+                        name
+                        options
+                        validations {
+                            functionId
+                            fieldId
+                        }
+                    }
+                }
                 title
                 type
                 fields {
@@ -193,6 +229,7 @@ GET_PROCEDURE = """
                     type
                     allowNotApplicable
                     allowedIonType
+                    name
                     options
                     validations {
                         functionId
@@ -387,6 +424,29 @@ GET_LABELS = """
                     createdById
                     updatedById
                 }
+            }
+        }
+    }
+"""
+
+CREATE_STEP_FIELD = """
+    mutation CreateStepField($input: CreateStepFieldInput!) {
+        createStepField(input: $input) {
+            stepField {
+                _etag
+                allowNotApplicable
+                allowedIonType
+                createdById
+                id
+                name
+                part { partNumber }
+                partSubtype { name }
+                peerReviewRequired
+                signoffRole { id name }
+                stepId
+                type
+                unit
+                updatedById
             }
         }
     }
