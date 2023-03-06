@@ -23,7 +23,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="%(asctime)s %(levelname)-8s %(message)s",
     datefmt="%a, %d %b %Y %H:%M:%S",
     filename="procedure_export/log.txt",
@@ -180,10 +180,6 @@ def add_step(
     parent_step_id: int = None,
     is_standard_step: bool = False,
 ):
-    if is_standard_step:
-        import pdb
-
-        pdb.set_trace()
     create_step_input = {
         "slateContent": step["slateContent"],
         "title": step["title"],
@@ -211,10 +207,12 @@ def add_step(
     logger.info(f"Replacing step slate content references to file attachments")
     slate_content = step["slateContent"]
     if slate_content:
-        expression = "reference.: (?P<id>\d*), "
+        expression = "reference.: (?P<id>\d*)"
         # Need to convert first to a string (json.dumps) so the text can be replaced.
         # Uses a regex match to find all references
-        for match in re.finditer(expression, json.dumps(slate_content)):
+        match_list = reversed(list(re.finditer(expression, json.dumps(slate_content))))
+        slate_content_updated = False
+        for match in match_list:
             # Getting existing file attachment data
             existing_file_attachment = get_file_attachment_info(
                 source_api, match.groupdict()["id"]
@@ -224,13 +222,16 @@ def add_step(
             # Replace slate content references
             new_slate_content = json.dumps(slate_content).replace(
                 match.group(),
-                f"reference\": {new_file_attachment['fileAttachment']['id']}, ",
+                f"reference\": {new_file_attachment['fileAttachment']['id']}",
             )
+            slate_content = json.loads(new_slate_content)
+            slate_content_updated = True
+        if slate_content_updated:
             update_step_slate_content(
                 api,
                 new_step["_etag"],
                 new_step["id"],
-                json.loads(new_slate_content),
+                slate_content,
             )
     for field in step["fields"]:
         add_field_to_step(api, field, new_step["id"])
@@ -352,7 +353,7 @@ def create_procedure_from_source_data(
     add_labels(api, labels, new_procedure["familyId"])
     new_procedure_id = new_procedure["id"]
     logger.info(f"Created new procedure: {new_procedure_id}")
-    new_steps = add_steps(api, source_procedure_data, new_procedure_id, source_api)
+    add_steps(api, source_procedure_data, new_procedure_id, source_api)
 
 
 if __name__ == "__main__":
