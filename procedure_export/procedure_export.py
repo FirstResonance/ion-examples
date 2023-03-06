@@ -98,6 +98,7 @@ def update_step_slate_content(
     }
     return api.request(request_body)
 
+
 def add_field_to_step(api: Api, field: dict, step_id: int):
     input = field
     field["stepId"] = step_id
@@ -107,11 +108,10 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
             del input[key]
     request_body = {
         "query": queries.CREATE_STEP_FIELD,
-        "variables": {
-            "input": input
-        },
+        "variables": {"input": input},
     }
     api.request(request_body)
+
 
 def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
     column_map = {}
@@ -121,11 +121,11 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
         del column_input["id"]
         column_body = {
             "query": queries.CREATE_DATAGRID_COLUMN,
-            "variables": {
-                "input": column_input
-            }
+            "variables": {"input": column_input},
         }
-        new_column = api.request(column_body)["data"]["createDatagridColumn"]["datagridColumn"]
+        new_column = api.request(column_body)["data"]["createDatagridColumn"][
+            "datagridColumn"
+        ]
         column_map[column["node"]["id"]] = new_column["id"]
     for row in rows["edges"]:
         rows_input = row["node"].copy()
@@ -134,9 +134,7 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
         del rows_input["id"]
         rows_body = {
             "query": queries.CREATE_DATAGRID_ROW,
-            "variables": {
-                "input": rows_input
-            }
+            "variables": {"input": rows_input},
         }
         new_row = api.request(rows_body)["data"]["createDatagridRow"]["datagridRow"]
         for value in row["node"]["values"]:
@@ -146,23 +144,18 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
                     "input": {
                         "rowId": new_row["id"],
                         "columnId": column_map[value["columnId"]],
-                        "value": value["value"]
+                        "value": value["value"],
                     }
-                }
+                },
             }
             api.request(value_body)
 
+
 def find_existing_standard_step(api: Api, title: str):
     request_body = {
-            "query": queries.GET_STEPS,
-            "variables": {
-                "filters": {
-                    "title": {
-                        "eq": title
-                    }
-                }
-            },
-        }
+        "query": queries.GET_STEPS,
+        "variables": {"filters": {"title": {"eq": title}}},
+    }
     existing_steps = api.request(request_body)["data"]["steps"]["edges"]
     if existing_steps:
         return existing_steps[0]["node"]
@@ -171,17 +164,26 @@ def find_existing_standard_step(api: Api, title: str):
 def load_standard_step(source_api: Api, id: int):
     request_body = {
         "query": queries.GET_STEP,
-        "variables": {
-            "id": id
-        },
+        "variables": {"id": id},
     }
     standard_step = source_api.request(request_body)["data"]["step"]
     return standard_step
 
 
-def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, step_map: dict, parent_step_id: int=None, is_standard_step: bool=False):
+def add_step(
+    api: Api,
+    step: dict,
+    source_procedure_data: dict,
+    procedure_id: int,
+    source_api: Api,
+    step_map: dict,
+    parent_step_id: int = None,
+    is_standard_step: bool = False,
+):
     if is_standard_step:
-        import pdb; pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
     create_step_input = {
         "slateContent": step["slateContent"],
         "title": step["title"],
@@ -190,15 +192,13 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
         "locationId": step["locationId"],
         "locationSubtypeId": step["locationSubtypeId"],
         "type": step["type"],
-        "parentId": parent_step_id
+        "parentId": parent_step_id,
     }
     if is_standard_step:
         del create_step_input["procedureId"]
     request_body = {
         "query": queries.CREATE_STEP,
-        "variables": {
-            "input": create_step_input
-        },
+        "variables": {"input": create_step_input},
     }
     new_step = api.request(request_body)["data"]["createStep"]["step"]
     step_map[step["id"]] = new_step["id"]
@@ -237,37 +237,44 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
     # Add child steps
     if not parent_step_id:
         for child_step in step["steps"]:
-            add_step(api, child_step, source_procedure_data, procedure_id, source_api, step_map, new_step["id"], is_standard_step=is_standard_step)
+            add_step(
+                api,
+                child_step,
+                source_procedure_data,
+                procedure_id,
+                source_api,
+                step_map,
+                new_step["id"],
+                is_standard_step=is_standard_step,
+            )
     # Create data grid
     if step["type"] == "DATAGRID":
-        add_datagrid_to_step(api, step["datagridColumns"], step["datagridRows"], new_step["id"])
+        add_datagrid_to_step(
+            api, step["datagridColumns"], step["datagridRows"], new_step["id"]
+        )
     return new_step
 
-def add_dependencies(
-    api: Api, step_map: dict, dependencies: dict
-):
+
+def add_dependencies(api: Api, step_map: dict, dependencies: dict):
     for step_id, upstream_step_id in dependencies.items():
         value_body = {
-                "query": queries.CREATE_STEP_EDGE,
-                "variables": {
-                    "stepId": step_map[step_id],
-                    "upstreamStepId": step_map[upstream_step_id]
-                }
-            }
+            "query": queries.CREATE_STEP_EDGE,
+            "variables": {
+                "stepId": step_map[step_id],
+                "upstreamStepId": step_map[upstream_step_id],
+            },
+        }
         api.request(value_body)
+
 
 def copy_step_into_procedure(api: Api, step_id: int, procedure_id: int):
     body = {
         "query": queries.COPY_STEP,
-        "variables": {
-            "input": {
-                "procedureId": procedure_id,
-                "stepId": step_id
-            }
-        }
+        "variables": {"input": {"procedureId": procedure_id, "stepId": step_id}},
     }
     new_step = api.request(body)["data"]["copyStep"]["step"]
     return new_step
+
 
 def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
@@ -283,40 +290,43 @@ def add_steps(
             reference_standard_step = find_existing_standard_step(api, step["title"])
             if not reference_standard_step:
                 standard_step = load_standard_step(source_api, step["originStepId"])
-                reference_standard_step = add_step(api, standard_step, source_procedure_data, procedure_id, source_api, step_map, is_standard_step=True)
-            derived_step = copy_step_into_procedure(api, reference_standard_step["id"], procedure_id)
+                reference_standard_step = add_step(
+                    api,
+                    standard_step,
+                    source_procedure_data,
+                    procedure_id,
+                    source_api,
+                    step_map,
+                    is_standard_step=True,
+                )
+            derived_step = copy_step_into_procedure(
+                api, reference_standard_step["id"], procedure_id
+            )
             step_map[step["id"]] = derived_step["id"]
         else:
-            add_step(api, step, source_procedure_data, procedure_id, source_api, step_map)
+            add_step(
+                api, step, source_procedure_data, procedure_id, source_api, step_map
+            )
         add_dependencies(api, step_map, dependencies)
 
 
 def get_label(api: Api, value: str):
     # first check if the label already exists
     request_body = {
-            "query": queries.GET_LABELS,
-            "variables": {
-                "filters": {
-                    "value": {
-                        "eq": value
-                    }
-                }
-            },
-        }
+        "query": queries.GET_LABELS,
+        "variables": {"filters": {"value": {"eq": value}}},
+    }
     existing_labels = api.request(request_body)["data"]["labels"]["edges"]
     if existing_labels:
         return existing_labels[0]["node"]
     else:
         new_label_request_body = {
             "query": queries.CREATE_LABEL,
-            "variables": {
-                "input": {
-                    "value": value
-                }
-            }
+            "variables": {"input": {"value": value}},
         }
         new_label = api.request(new_label_request_body)["data"]
         return new_label["createLabel"]["label"]
+
 
 def add_labels(api: Api, labels: list, procedure_family_id: int):
     for label in labels:
@@ -325,14 +335,11 @@ def add_labels(api: Api, labels: list, procedure_family_id: int):
         request_body = {
             "query": queries.ADD_LABEL_TO_PROCEDURE_FAMILY,
             "variables": {
-                "input": {
-                    "labelId": new_label["id"],
-                    "familyId": procedure_family_id
-                }
+                "input": {"labelId": new_label["id"], "familyId": procedure_family_id}
             },
         }
         api.request(request_body)["data"]
-    
+
 
 def create_procedure_from_source_data(
     api: Api, source_procedure_data: dict, new_title: str, source_api: Api
@@ -385,4 +392,4 @@ if __name__ == "__main__":
         )
         print("Completed procedure export.")
     except Exception as e:
-        raise(f"Error occurred while exporting procedure: {e}")
+        raise (f"Error occurred while exporting procedure: {e}")
