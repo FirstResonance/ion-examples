@@ -152,7 +152,36 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
             }
             api.request(value_body)
 
-def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, step_map: dict, parent_step_id: int=None):
+def find_existing_standard_step(api: Api, title: str):
+    request_body = {
+            "query": queries.GET_STEPS,
+            "variables": {
+                "filters": {
+                    "title": {
+                        "eq": title
+                    }
+                }
+            },
+        }
+    existing_steps = api.request(request_body)["data"]["steps"]["edges"]
+    if existing_steps:
+        return existing_steps[0]["node"]
+
+
+def load_standard_step(source_api: Api, id: int):
+    request_body = {
+        "query": queries.GET_STEP,
+        "variables": {
+            "id": id
+        },
+    }
+    standard_step = source_api.request(request_body)["data"]["step"]
+    return standard_step
+
+
+def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: int, source_api: Api, step_map: dict, parent_step_id: int=None, is_standard_step: bool=False):
+    if is_standard_step:
+        import pdb; pdb.set_trace()
     create_step_input = {
         "slateContent": step["slateContent"],
         "title": step["title"],
@@ -163,6 +192,8 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
         "type": step["type"],
         "parentId": parent_step_id
     }
+    if is_standard_step:
+        del create_step_input["procedureId"]
     request_body = {
         "query": queries.CREATE_STEP,
         "variables": {
@@ -206,7 +237,7 @@ def add_step(api: Api, step: dict, source_procedure_data: dict, procedure_id: in
     # Add child steps
     if not parent_step_id:
         for child_step in step["steps"]:
-            add_step(api, child_step, source_procedure_data, procedure_id, source_api, step_map, new_step["id"])
+            add_step(api, child_step, source_procedure_data, procedure_id, source_api, step_map, new_step["id"], is_standard_step=is_standard_step)
     # Create data grid
     if step["type"] == "DATAGRID":
         add_datagrid_to_step(api, step["datagridColumns"], step["datagridRows"], new_step["id"])
@@ -225,6 +256,19 @@ def add_dependencies(
             }
         api.request(value_body)
 
+def copy_step_into_procedure(api: Api, step_id: int, procedure_id: int):
+    body = {
+        "query": queries.COPY_STEP,
+        "variables": {
+            "input": {
+                "procedureId": procedure_id,
+                "stepId": step_id
+            }
+        }
+    }
+    new_step = api.request(body)["data"]["copyStep"]["step"]
+    return new_step
+
 def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
 ):
@@ -235,7 +279,15 @@ def add_steps(
     for step in source_procedure_data["steps"]:
         for upstream_step_id in step["upstreamStepIds"]:
             dependencies[step["id"]] = upstream_step_id
-        add_step(api, step, source_procedure_data, procedure_id, source_api, step_map)
+        if step["isDerivedStep"]:
+            reference_standard_step = find_existing_standard_step(api, step["title"])
+            if not reference_standard_step:
+                standard_step = load_standard_step(source_api, step["originStepId"])
+                reference_standard_step = add_step(api, standard_step, source_procedure_data, procedure_id, source_api, step_map, is_standard_step=True)
+            derived_step = copy_step_into_procedure(api, reference_standard_step["id"], procedure_id)
+            step_map[step["id"]] = derived_step["id"]
+        else:
+            add_step(api, step, source_procedure_data, procedure_id, source_api, step_map)
         add_dependencies(api, step_map, dependencies)
 
 
