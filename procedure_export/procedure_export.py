@@ -100,6 +100,7 @@ def update_step_slate_content(
 
 
 def add_field_to_step(api: Api, field: dict, step_id: int):
+    """Add field parameters to a step."""
     input = field
     field["stepId"] = step_id
     # remove nulls
@@ -114,6 +115,7 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
 
 
 def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
+    """Add datagrid information to a step."""
     column_map = {}
     for column in columns["edges"]:
         column_input = column["node"].copy()
@@ -152,6 +154,7 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
 
 
 def find_existing_standard_step(api: Api, title: str):
+    """Check if standard step already exists."""
     request_body = {
         "query": queries.GET_STEPS,
         "variables": {"filters": {"title": {"eq": title}}},
@@ -162,6 +165,7 @@ def find_existing_standard_step(api: Api, title: str):
 
 
 def load_standard_step(source_api: Api, id: int):
+    """Load standard step information."""
     request_body = {
         "query": queries.GET_STEP,
         "variables": {"id": id},
@@ -180,6 +184,7 @@ def add_step(
     parent_step_id: int = None,
     is_standard_step: bool = False,
 ):
+    """Add new step."""
     create_step_input = {
         "slateContent": step["slateContent"],
         "title": step["title"],
@@ -257,6 +262,7 @@ def add_step(
 
 
 def add_dependencies(api: Api, step_map: dict, dependencies: dict):
+    """Add dependencies between steps."""
     for step_id, upstream_step_id in dependencies.items():
         value_body = {
             "query": queries.CREATE_STEP_EDGE,
@@ -269,6 +275,7 @@ def add_dependencies(api: Api, step_map: dict, dependencies: dict):
 
 
 def copy_step_into_procedure(api: Api, step_id: int, procedure_id: int):
+    """Copy standard step into procedure."""
     body = {
         "query": queries.COPY_STEP,
         "variables": {"input": {"procedureId": procedure_id, "stepId": step_id}},
@@ -312,7 +319,7 @@ def add_steps(
 
 
 def get_label(api: Api, value: str):
-    # first check if the label already exists
+    """Check if label already exists and if not, create it."""
     request_body = {
         "query": queries.GET_LABELS,
         "variables": {"filters": {"value": {"eq": value}}},
@@ -330,6 +337,7 @@ def get_label(api: Api, value: str):
 
 
 def add_labels(api: Api, labels: list, procedure_family_id: int):
+    """Adds labels to a procedure family."""
     for label in labels:
         logger.info(f"Adding {label} label to procedure.")
         new_label = get_label(api, label)
