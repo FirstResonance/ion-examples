@@ -164,8 +164,15 @@ CREATE_MBOM_ITEM_REFERENCE_DESIGNATOR = """
 GET_PROCEDURE = """
     query GetProcedure($id: ID!) {
         procedure(id: $id) {
+            attributes {
+                key
+                type
+                value
+            }
             id
             description
+            familyId
+            labels
             type
             title
             steps {
@@ -176,21 +183,109 @@ GET_PROCEDURE = """
                     s3Bucket
                     downloadUrl
                 }
+                datagridColumns {
+                        edges {
+                            node {
+                                id
+                                index
+                                header
+                                options
+                                signoffRoleId
+                                type
+                            }
+                        }
+                    }
+                datagridRows {
+                    edges {
+                        node {
+                            id
+                            allowNotApplicable
+                            index
+                            required
+                            values { value columnId type }
+                        }
+                    }
+                }
                 entityId
                 id
+                isDerivedStep
+                isStandardStep
                 leadTime
                 locationId
                 locationSubtypeId
+                originStepId
                 parentId
                 position
                 slateContent
+                steps {
+                    assets {
+                        filename
+                        id
+                        s3Key
+                        s3Bucket
+                        downloadUrl
+                    }
+                    datagridColumns {
+                        edges {
+                            node {
+                                id
+                                index
+                                header
+                                options
+                                signoffRoleId
+                                type
+                            }
+                        }
+                    }
+                    datagridRows {
+                        edges {
+                            node {
+                                id
+                                allowNotApplicable
+                                index
+                                required
+                                values { value columnId type }
+                            }
+                        }
+                    }
+                    entityId
+                    id
+                    isDerivedStep
+                    isStandardStep
+                    leadTime
+                    locationId
+                    locationSubtypeId
+                    originStepId
+                    parentId
+                    position
+                    slateContent
+                    title
+                    type
+                    upstreamStepIds
+                    version
+                    fields {
+                        id
+                        type
+                        allowNotApplicable
+                        allowedIonType
+                        name
+                        options
+                        validations {
+                            functionId
+                            fieldId
+                        }
+                    }
+                }
                 title
                 type
+                upstreamStepIds
+                version
                 fields {
                     id
                     type
                     allowNotApplicable
                     allowedIonType
+                    name
                     options
                     validations {
                         functionId
@@ -217,6 +312,7 @@ CREATE_PROCEDURE = """
         ) {
             procedure {
                 id
+                familyId
             }
         }
     }
@@ -237,6 +333,7 @@ CREATE_STEP = """
                 _etag
                 familyId
                 id
+                isDerivedStep
                 isStandardStep
                 leadTime
                 location { id name }
@@ -353,4 +450,424 @@ UPDATE_PART_INVENTORY = """
             }
         }
     }
+"""
+
+ADD_LABEL_TO_PROCEDURE_FAMILY = """
+    mutation AddLabelToProcedureFamily($input: LabelToProcedureFamilyInput!) {
+        addLabelToProcedureFamily(input: $input) {
+            labelId familyId
+        }
+    }
+"""
+
+CREATE_LABEL = """
+    mutation CreateLabel($input: CreateLabelInput!) {
+        createLabel(input: $input) {
+            label {
+                id value _etag createdById updatedById
+            }
+        }
+    }
+"""
+
+GET_LABELS = """
+    query GetLabels($filters: LabelsInputFilters) {
+        labels(filters: $filters) {
+            edges {
+                node {
+                    id
+                    _etag
+                    value
+                    createdById
+                    updatedById
+                }
+            }
+        }
+    }
+"""
+
+CREATE_STEP_FIELD = """
+    mutation CreateStepField($input: CreateStepFieldInput!) {
+        createStepField(input: $input) {
+            stepField {
+                _etag
+                allowNotApplicable
+                allowedIonType
+                createdById
+                id
+                name
+                part { partNumber }
+                partSubtype { name }
+                peerReviewRequired
+                signoffRole { id name }
+                stepId
+                type
+                unit
+                updatedById
+            }
+        }
+    }
+"""
+
+CREATE_DATAGRID_COLUMN = """
+    mutation CreateDatagridColumn($input: CreateDatagridColumnInput!) {
+        createDatagridColumn(input: $input) {
+            datagridColumn {
+                LastSessionId
+                editable
+                header
+                id
+                index
+                options
+                runStepId
+                settable
+                signoffRoleId
+                stepId
+                type
+                unit
+            }
+        }
+    }
+"""
+
+CREATE_DATAGRID_ROW = """
+    mutation CreateDatagridRow($input: CreateDatagridRowInput!) {
+        createDatagridRow(input: $input) {
+            datagridRow {
+                id
+                index
+                required
+                runStepId
+                stepId
+            }
+        }
+    }
+"""
+
+SET_DATAGRID_VALUE = """
+    mutation SetDatagridValue($input: SetDatagridValueInput!) {
+        setDatagridValue(input: $input) {
+            datagridValue {
+                _etag
+                columnId
+                id
+                ionValue {
+                    ... on User {
+                        id
+                        email
+                    }
+                }
+                notApplicable
+                rowId
+                type
+                value
+            }
+        }
+    }
+"""
+
+CREATE_STEP_EDGE = """
+    mutation CreateStepEdge($stepId: ID!, $upstreamStepId: ID!) {
+        createStepEdge(input: {stepId: $stepId, upstreamStepId: $upstreamStepId}) {
+            stepEdge {
+                id stepId upstreamStepId createdById updatedById
+            }
+        }
+    }
+"""
+
+GET_STEP = """
+    query Step($id: ID!) {
+        step(id: $id) {
+            assets {
+                filename
+                id
+                s3Key
+                s3Bucket
+                downloadUrl
+            }
+            datagridColumns {
+                edges {
+                    node {
+                        id
+                        index
+                        header
+                        options
+                        signoffRoleId
+                        type
+                    }
+                }
+            }
+            datagridRows {
+                edges {
+                    node {
+                        id
+                        allowNotApplicable
+                        index
+                        required
+                        values { value columnId type }
+                    }
+                }
+            }
+            entityId
+            id
+            isDerivedStep
+            isStandardStep
+            leadTime
+            locationId
+            locationSubtypeId
+            originStepId
+            parentId
+            position
+            slateContent
+            steps {
+                assets {
+                    filename
+                    id
+                    s3Key
+                    s3Bucket
+                    downloadUrl
+                }
+                datagridColumns {
+                    edges {
+                        node {
+                            id
+                            index
+                            header
+                            options
+                            signoffRoleId
+                            type
+                        }
+                    }
+                }
+                datagridRows {
+                    edges {
+                        node {
+                            id
+                            allowNotApplicable
+                            index
+                            required
+                            values { value columnId type }
+                        }
+                    }
+                }
+                entityId
+                id
+                isDerivedStep
+                isStandardStep
+                leadTime
+                locationId
+                locationSubtypeId
+                originStepId
+                parentId
+                position
+                slateContent
+                title
+                type
+                upstreamStepIds
+                version
+                fields {
+                    id
+                    type
+                    allowNotApplicable
+                    allowedIonType
+                    name
+                    options
+                    validations {
+                        functionId
+                        fieldId
+                    }
+                }
+            }
+            title
+            type
+            upstreamStepIds
+            version
+            fields {
+                id
+                type
+                allowNotApplicable
+                allowedIonType
+                name
+                options
+                validations {
+                    functionId
+                    fieldId
+                }
+            }
+        }  
+    }
+"""
+
+GET_STEPS = """
+    query getSteps($filters: StepsFilters) {
+        steps(filters: $filters) {
+            edges {
+                node {
+                    assets {
+                        filename
+                        id
+                        s3Key
+                        s3Bucket
+                        downloadUrl
+                    }
+                    datagridColumns {
+                        edges {
+                            node {
+                                id
+                                index
+                                header
+                                options
+                                signoffRoleId
+                                type
+                            }
+                        }
+                    }
+                    datagridRows {
+                        edges {
+                            node {
+                                id
+                                allowNotApplicable
+                                index
+                                required
+                                values { value columnId type }
+                            }
+                        }
+                    }
+                    entityId
+                    id
+                    isDerivedStep
+                    isStandardStep
+                    leadTime
+                    locationId
+                    locationSubtypeId
+                    originStepId
+                    parentId
+                    position
+                    slateContent
+                    steps {
+                        assets {
+                            filename
+                            id
+                            s3Key
+                            s3Bucket
+                            downloadUrl
+                        }
+                        datagridColumns {
+                            edges {
+                                node {
+                                    id
+                                    index
+                                    header
+                                    options
+                                    signoffRoleId
+                                    type
+                                }
+                            }
+                        }
+                        datagridRows {
+                            edges {
+                                node {
+                                    id
+                                    allowNotApplicable
+                                    index
+                                    required
+                                    values { value columnId type }
+                                }
+                            }
+                        }
+                        entityId
+                        id
+                        isDerivedStep
+                        isStandardStep
+                        leadTime
+                        locationId
+                        locationSubtypeId
+                        originStepId
+                        parentId
+                        position
+                        slateContent
+                        title
+                        type
+                        upstreamStepIds
+                        version
+                        fields {
+                            id
+                            type
+                            allowNotApplicable
+                            allowedIonType
+                            name
+                            options
+                            validations {
+                                functionId
+                                fieldId
+                            }
+                        }
+                    }
+                    title
+                    type
+                    upstreamStepIds
+                    version
+                    fields {
+                        id
+                        type
+                        allowNotApplicable
+                        allowedIonType
+                        name
+                        options
+                        validations {
+                            functionId
+                            fieldId
+                        }
+                    }
+                }
+            }
+        }  
+    }
+"""
+
+COPY_STEP = """
+mutation CopyStep($input: CopyStepInput!) {
+    copyStep(input: $input) {
+        step {
+            assets { id }
+            content
+            familyId
+            fields { id validations { functionId fieldId } }
+            id
+            labels { id value }
+            isChildStandardStep
+            isDerivedStep
+            isStandardStep
+            originStepId
+            mbomItemAssociations {
+                id
+                mbomItemId
+                step { procedureId }
+                stepId
+            }
+            parentId
+            position
+            procedureId
+            title
+            slateContent
+            standardStepFamilyId
+            standardStepStatus
+            steps {
+                fields { id name }
+                id
+                isChildStandardStep
+                isDerivedStep
+                isStandardStep
+                originStepId
+                standardStepStatus
+                title
+            }
+            version
+            attributes {
+                key type value
+            }
+        }
+    }
+}
 """
