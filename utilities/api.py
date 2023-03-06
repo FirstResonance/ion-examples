@@ -9,7 +9,7 @@ API_URL = os.getenv("ION_API_URI", "https://staging-api.buildwithion.com")
 
 class Api(object):
     def __init__(
-        self, client_id, client_secret, auth_server=None, api_uri=None
+        self, client_id, client_secret, auth_server=None, api_uri=None, logger=None
     ) -> None:
         self.client_id = client_id
         self.client_secret = client_secret
@@ -17,6 +17,7 @@ class Api(object):
         self.audience = self.api_url
         self.auth_server = auth_server or AUTH0_DOMAIN
         self.access_token = self.get_access_token()
+        self.logger = logger
 
     def get_access_token(self) -> str:
         payload = {
@@ -61,12 +62,11 @@ class Api(object):
             dict: API response from request.
         """
         headers = self._get_headers()
-        logging.info(f"Calling {self.api_url} with {query_info}")
+        self.logger.info(f"Calling {self.api_url} with {query_info}")
         res = requests.post(
             urljoin(self.api_url, "graphql"), headers=headers, json=query_info
         )
         resp_value = res.json()
         if resp_value.get("errors"):
-            logging.error("---AN ERROR OCCURRED IN THE API REQUEST---")
-            logging.error(resp_value)
+            raise Exception(f"---AN ERROR OCCURRED IN THE API REQUEST---\n{resp_value}")
         return resp_value

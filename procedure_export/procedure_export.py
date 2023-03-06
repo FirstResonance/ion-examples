@@ -288,7 +288,7 @@ def add_steps(
     api: Api, source_procedure_data: dict, procedure_id: int, source_api: Api
 ):
     """Adds steps to newly created procedure."""
-    logger.info(f"Adding {len(source_procedure_data['steps'])} step to procedure")
+    logger.info(f"Adding {len(source_procedure_data['steps'])} step(s) to procedure")
     step_map = {}
     dependencies = {}
     for step in source_procedure_data["steps"]:
@@ -386,12 +386,14 @@ if __name__ == "__main__":
             client_secret=source_client_secret,
             auth_server=source_auth_server,
             api_uri=source_api_uri,
+            logger=logger,
         )
         target_api = Api(
             client_id=target_client_id,
             client_secret=target_client_secret,
             auth_server=target_auth_server,
             api_uri=target_api_uri,
+            logger=logger,
         )
         procedure_id = input("Input the procedure ID that you would like to export: ")
         new_title = input("Enter an optional title for the new procedure: ")
@@ -401,4 +403,6 @@ if __name__ == "__main__":
         )
         print("Completed procedure export.")
     except Exception as e:
-        raise (f"Error occurred while exporting procedure: {e}")
+        error = f"Error occurred while exporting procedure: {e}"
+        print(error)
+        logger.exception(error)
