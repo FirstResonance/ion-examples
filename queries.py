@@ -265,11 +265,14 @@ GET_PROCEDURE = """
                     version
                     fields {
                         id
-                        type
                         allowNotApplicable
                         allowedIonType
+                        display
                         name
                         options
+                        required
+                        type
+                        unit
                         validations {
                             functionId
                             fieldId
@@ -282,11 +285,14 @@ GET_PROCEDURE = """
                 version
                 fields {
                     id
-                    type
                     allowNotApplicable
                     allowedIonType
+                    display
                     name
                     options
+                    required
+                    type
+                    unit
                     validations {
                         functionId
                         fieldId
@@ -668,11 +674,14 @@ GET_STEP = """
                 version
                 fields {
                     id
-                    type
                     allowNotApplicable
                     allowedIonType
+                    display
                     name
                     options
+                    required
+                    type
+                    unit
                     validations {
                         functionId
                         fieldId
@@ -685,11 +694,14 @@ GET_STEP = """
             version
             fields {
                 id
-                type
                 allowNotApplicable
                 allowedIonType
+                display
                 name
                 options
+                required
+                type
+                unit
                 validations {
                     functionId
                     fieldId

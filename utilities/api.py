@@ -2,6 +2,7 @@ import os
 import logging
 import requests
 from urllib.parse import urljoin
+import json
 
 AUTH0_DOMAIN = os.getenv("ION_AUTH_SERVER", "staging-auth.buildwithion.com")
 API_URL = os.getenv("ION_API_URI", "https://staging-api.buildwithion.com")
@@ -62,7 +63,7 @@ class Api(object):
             dict: API response from request.
         """
         headers = self._get_headers()
-        self.logger.info(f"Calling {self.api_url} with {query_info}")
+        self.logger.info(f"Calling {self.api_url} with {json.dumps(query_info, indent=4)}")
         res = requests.post(
             urljoin(self.api_url, "graphql"), headers=headers, json=query_info
         )

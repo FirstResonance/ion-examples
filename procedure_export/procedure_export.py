@@ -100,7 +100,7 @@ def update_step_slate_content(
 
 
 def add_field_to_step(api: Api, field: dict, step_id: int):
-    """Add field parameters to a step."""
+    """Add field to a step."""
     input = field
     field["stepId"] = step_id
     # remove nulls
@@ -315,7 +315,7 @@ def add_steps(
             add_step(
                 api, step, source_procedure_data, procedure_id, source_api, step_map
             )
-        add_dependencies(api, step_map, dependencies)
+    add_dependencies(api, step_map, dependencies)
 
 
 def get_label(api: Api, value: str):
