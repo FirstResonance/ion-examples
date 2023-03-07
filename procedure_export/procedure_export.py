@@ -140,6 +140,8 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
         }
         new_row = api.request(rows_body)["data"]["createDatagridRow"]["datagridRow"]
         for value in row["node"]["values"]:
+            if value["type"] == "SIGNOFF":
+                continue
             value_body = {
                 "query": queries.SET_DATAGRID_VALUE,
                 "variables": {
