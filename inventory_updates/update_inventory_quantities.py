@@ -83,6 +83,7 @@ def update_inventory_quantities(api, csv_data):
         inventory = get_inventory(api, row[0])
         if inventory["status"] not in ["AVAILABLE", "UNAVAILABLE"]:
             print(f"Skipping inventory because it is not available. Status: {inventory['status']}")
+            continue
         abom_items = inventory["abomItems"]
         # If aBOM quantities are out of sync with inventory quantities then it causes issues when trying
         # to update the inventory.
