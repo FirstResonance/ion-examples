@@ -431,12 +431,18 @@ GET_PART_INVENTORY = """
         partInventory(id: $id) {
             _etag
             id
+            quantity
             part {
                 description
                 partNumber
                 revision
             }
             quantity
+            abomItems {
+                id
+                _etag
+                quantity
+            }
         }
     }
 """
@@ -882,4 +888,16 @@ mutation CopyStep($input: CopyStepInput!) {
         }
     }
 }
+"""
+
+UPDATE_ABOM_ITEM = """
+    mutation UpdateAbomItem($input: UpdateABomItemInput!) {
+        updateAbomItem(input: $input) {
+            abomItem {
+                _etag
+                id
+                quantity
+            }
+        }
+    }
 """

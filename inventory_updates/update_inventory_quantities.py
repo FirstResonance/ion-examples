@@ -57,6 +57,21 @@ def update_inventory(api: Api, inventory: dict, new_quantity: float):
     logger.info(f"Response: {res}")
     return res["data"]["updatePartInventory"]["partInventory"]
 
+def update_abom_item(api: Api, abom_item: dict, new_quantity: float):
+    """Update abom item quantity."""
+    request_body = {
+        "query": queries.UPDATE_ABOM_ITEM,
+        "variables": {
+            "input": {
+                "id": abom_item["id"],
+                "etag": abom_item["_etag"],
+                "quantity": new_quantity,
+            }
+        },
+    }
+    res = api.request(request_body)
+    logger.info(f"Response: {res}")
+    return res["data"]["updatePartInventory"]["partInventory"]
 
 def update_inventory_quantities(api, csv_data):
     items_length = len(csv_data) - 1
@@ -66,6 +81,12 @@ def update_inventory_quantities(api, csv_data):
             continue
         logger.info(f"Processing row {index}/{items_length}")
         inventory = get_inventory(api, row[0])
+        abom_items = inventory["abomItems"]
+        # If aBOM quantities are out of sync with inventory quantities then it causes issues when trying
+        # to update the inventory.
+        if abom_items and len(abom_items) == 1 and abom_items[0]["quantity"] > inventory["quantity"]:
+            update_abom_item(api, abom_items[0], inventory["quantity"])
+
         # Remove excess 0s at end of decimal
         new_quantity = str(decimal.Decimal(row[1]).normalize())
         updated_inventory = update_inventory(api, inventory, new_quantity)
@@ -91,6 +112,7 @@ if __name__ == "__main__":
             client_secret=client_secret,
             auth_server=auth_server,
             api_uri=api_uri,
+            logger=logger,
         )
         csv_data = CsvHelper.read_from_csv("inventory_updates/inventory_update.csv")
         update_inventory_quantities(api, csv_data)
