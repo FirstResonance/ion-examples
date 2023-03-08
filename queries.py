@@ -432,6 +432,7 @@ GET_PART_INVENTORY = """
             _etag
             id
             quantity
+            status
             part {
                 description
                 partNumber
