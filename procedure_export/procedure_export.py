@@ -103,9 +103,12 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
     """Add field to a step."""
     input = field
     field["stepId"] = step_id
-    # remove nulls
+    if field["signoffRole"] is not None:
+        role = get_role(api, field["signoffRole"]["name"])
+        input["signoffRoleId"] = role["id"]
+    # remove nulls and other properties that should not be included
     for key, value in list(input.items()):
-        if value == None or key in ["id", "validations"]:
+        if value == None or key in ["id", "validations", "signoffRole"]:
             del input[key]
     request_body = {
         "query": queries.CREATE_STEP_FIELD,
@@ -119,8 +122,12 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
     column_map = {}
     for column in columns["edges"]:
         column_input = column["node"].copy()
+        if column_input["signoffRole"]:
+            role = get_role(api, column_input["signoffRole"]["name"])
+            column_input["signoffRoleId"] = role["id"]
         column_input["stepId"] = step_id
         del column_input["id"]
+        del column_input["signoffRole"]
         column_body = {
             "query": queries.CREATE_DATAGRID_COLUMN,
             "variables": {"input": column_input},
@@ -192,8 +199,8 @@ def add_step(
         "title": step["title"],
         "procedureId": procedure_id,
         "leadTime": step["leadTime"],
-        "locationId": step["locationId"],
-        "locationSubtypeId": step["locationSubtypeId"],
+        # "locationId": step["locationId"],
+        # "locationSubtypeId": step["locationSubtypeId"],
         "type": step["type"],
         "parentId": parent_step_id,
     }
@@ -318,6 +325,24 @@ def add_steps(
                 api, step, source_procedure_data, procedure_id, source_api, step_map
             )
     add_dependencies(api, step_map, dependencies)
+
+
+def get_role(api: Api, name: str):
+    """Check if role already exists and if not, create it."""
+    request_body = {
+        "query": queries.GET_ROLES,
+        "variables": {"filters": {"name": {"eq": name}}},
+    }
+    existing_roles = api.request(request_body)["data"]["roles"]["edges"]
+    if existing_roles:
+        return existing_roles[0]["node"]
+    else:
+        new_role_request_body = {
+            "query": queries.CREATE_ROLE,
+            "variables": {"input": {"name": name}},
+        }
+        new_role = api.request(new_role_request_body)["data"]
+        return new_role["createRole"]["role"]
 
 
 def get_label(api: Api, value: str):

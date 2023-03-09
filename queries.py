@@ -91,6 +91,16 @@ GET_ROLES = """
     }
 """
 
+CREATE_ROLE = """
+    mutation CreateRole($input: CreateRoleInput!) {
+        createRole(input: $input) {
+            role {
+                id name
+            }
+        }
+    }
+"""
+
 GET_TEAMS = """
     query GetTeams($filters: TeamsInputFilters) {
         teams(filters: $filters) {
@@ -190,7 +200,10 @@ GET_PROCEDURE = """
                                 index
                                 header
                                 options
-                                signoffRoleId
+                                signoffRole {
+                                    id
+                                    name
+                                }
                                 type
                             }
                         }
@@ -232,7 +245,10 @@ GET_PROCEDURE = """
                                 index
                                 header
                                 options
-                                signoffRoleId
+                                signoffRole {
+                                    id
+                                    name
+                                }
                                 type
                             }
                         }
@@ -271,6 +287,10 @@ GET_PROCEDURE = """
                         name
                         options
                         required
+                        signoffRole {
+                            id
+                            name
+                        }
                         type
                         unit
                         validations {
@@ -291,6 +311,10 @@ GET_PROCEDURE = """
                     name
                     options
                     required
+                    signoffRole {
+                        id
+                        name
+                    }
                     type
                     unit
                     validations {
@@ -332,7 +356,15 @@ CREATE_STEP = """
                 content
                 createdById
                 datagrid {
-                    columns { editable header type id prevId unit signoffRoleId options }
+                    columns {
+                        editable
+                        header
+                        type
+                        id
+                        prevId
+                        unit
+                        options 
+                    }
                     rows { id prevId data }
                 }
                 entityId
@@ -606,7 +638,10 @@ GET_STEP = """
                         index
                         header
                         options
-                        signoffRoleId
+                        signoffRole {
+                            id
+                            name
+                        } 
                         type
                     }
                 }
@@ -632,6 +667,10 @@ GET_STEP = """
             originStepId
             parentId
             position
+            signoffRole {
+                id
+                name
+            }
             slateContent
             steps {
                 assets {
@@ -648,7 +687,10 @@ GET_STEP = """
                             index
                             header
                             options
-                            signoffRoleId
+                            signoffRole {
+                                id
+                                name
+                            } 
                             type
                         }
                     }
@@ -687,6 +729,10 @@ GET_STEP = """
                     name
                     options
                     required
+                    signoffRole {
+                        id
+                        name
+                    }
                     type
                     unit
                     validations {
@@ -737,7 +783,10 @@ GET_STEPS = """
                                 index
                                 header
                                 options
-                                signoffRoleId
+                                signoffRole {
+                                    id
+                                    name
+                                } 
                                 type
                             }
                         }
@@ -779,7 +828,10 @@ GET_STEPS = """
                                     index
                                     header
                                     options
-                                    signoffRoleId
+                                    signoffRole {
+                                        id
+                                        name
+                                    } 
                                     type
                                 }
                             }
@@ -817,6 +869,10 @@ GET_STEPS = """
                             allowedIonType
                             name
                             options
+                            signoffRole {
+                                id
+                                name
+                            }
                             validations {
                                 functionId
                                 fieldId
@@ -834,6 +890,10 @@ GET_STEPS = """
                         allowedIonType
                         name
                         options
+                        signoffRole {
+                            id
+                            name
+                        }
                         validations {
                             functionId
                             fieldId
