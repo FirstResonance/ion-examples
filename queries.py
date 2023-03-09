@@ -230,6 +230,9 @@ GET_PROCEDURE = """
                 parentId
                 position
                 slateContent
+                standardStep {
+                    id
+                }
                 steps {
                     assets {
                         filename
@@ -275,6 +278,9 @@ GET_PROCEDURE = """
                     parentId
                     position
                     slateContent
+                    standardStep {
+                        id
+                    }
                     title
                     type
                     upstreamStepIds
@@ -667,11 +673,10 @@ GET_STEP = """
             originStepId
             parentId
             position
-            signoffRole {
-                id
-                name
-            }
             slateContent
+            standardStep {
+                id
+            }
             steps {
                 assets {
                     filename
@@ -717,6 +722,9 @@ GET_STEP = """
                 parentId
                 position
                 slateContent
+                standardStep {
+                    id
+                }
                 title
                 type
                 upstreamStepIds
@@ -753,6 +761,10 @@ GET_STEP = """
                 name
                 options
                 required
+                signoffRole {
+                    id
+                    name
+                }
                 type
                 unit
                 validations {
@@ -765,8 +777,8 @@ GET_STEP = """
 """
 
 GET_STEPS = """
-    query getSteps($filters: StepsFilters) {
-        steps(filters: $filters) {
+    query getSteps($filters: StepsFilters, $sort: [StepSortEnum]) {
+        steps(filters: $filters, sort: $sort) {
             edges {
                 node {
                     assets {
@@ -813,6 +825,9 @@ GET_STEPS = """
                     parentId
                     position
                     slateContent
+                    standardStep {
+                        id
+                    }
                     steps {
                         assets {
                             filename
@@ -858,6 +873,9 @@ GET_STEPS = """
                         parentId
                         position
                         slateContent
+                        standardStep {
+                            id
+                        }
                         title
                         type
                         upstreamStepIds
