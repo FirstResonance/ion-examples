@@ -103,9 +103,12 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
     """Add field to a step."""
     input = field
     field["stepId"] = step_id
-    # remove nulls
+    if field["signoffRole"] is not None:
+        role = get_role(api, field["signoffRole"]["name"])
+        input["signoffRoleId"] = role["id"]
+    # remove nulls and other properties that should not be included
     for key, value in list(input.items()):
-        if value == None or key in ["id", "validations"]:
+        if value == None or key in ["id", "validations", "signoffRole"]:
             del input[key]
     request_body = {
         "query": queries.CREATE_STEP_FIELD,
@@ -119,8 +122,12 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
     column_map = {}
     for column in columns["edges"]:
         column_input = column["node"].copy()
+        if column_input["signoffRole"]:
+            role = get_role(api, column_input["signoffRole"]["name"])
+            column_input["signoffRoleId"] = role["id"]
         column_input["stepId"] = step_id
         del column_input["id"]
+        del column_input["signoffRole"]
         column_body = {
             "query": queries.CREATE_DATAGRID_COLUMN,
             "variables": {"input": column_input},
@@ -192,13 +199,14 @@ def add_step(
         "title": step["title"],
         "procedureId": procedure_id,
         "leadTime": step["leadTime"],
-        "locationId": step["locationId"],
-        "locationSubtypeId": step["locationSubtypeId"],
+        # "locationId": step["locationId"],
+        # "locationSubtypeId": step["locationSubtypeId"],
         "type": step["type"],
         "parentId": parent_step_id,
     }
     if is_standard_step:
         del create_step_input["procedureId"]
+    logger.info("Creating new step.")
     request_body = {
         "query": queries.CREATE_STEP,
         "variables": {"input": create_step_input},
@@ -240,26 +248,28 @@ def add_step(
                 new_step["id"],
                 slate_content,
             )
+    logger.info("Adding fields to step.")
     for field in step["fields"]:
         add_field_to_step(api, field, new_step["id"])
-    # Add child steps
-    if not parent_step_id:
-        for child_step in step["steps"]:
-            add_step(
-                api,
-                child_step,
-                source_procedure_data,
-                procedure_id,
-                source_api,
-                step_map,
-                new_step["id"],
-                is_standard_step=is_standard_step,
-            )
     # Create data grid
     if step["type"] == "DATAGRID":
+        logger.info("Adding datagrid to step.")
         add_datagrid_to_step(
             api, step["datagridColumns"], step["datagridRows"], new_step["id"]
         )
+    # Add child steps
+    if not parent_step_id:
+        logger.info(f"Processing {len(step['steps'])} child steps")
+        for child_step in step["steps"]:
+            check_if_standard_step_and_add(
+                api,
+                source_api,
+                child_step,
+                step_map,
+                source_procedure_data,
+                None if is_standard_step else procedure_id,
+                parent_id=new_step["id"],
+            )
     return new_step
 
 
@@ -276,14 +286,63 @@ def add_dependencies(api: Api, step_map: dict, dependencies: dict):
         api.request(value_body)
 
 
-def copy_step_into_procedure(api: Api, step_id: int, procedure_id: int):
+def copy_step_into_procedure(
+    api: Api, step_id: int, procedure_id: int, parent_id: int = None
+):
     """Copy standard step into procedure."""
+    logger.info("Copying standard step into procedure.")
     body = {
         "query": queries.COPY_STEP,
-        "variables": {"input": {"procedureId": procedure_id, "stepId": step_id}},
+        "variables": {
+            "input": {
+                "procedureId": procedure_id,
+                "stepId": step_id,
+                "parentId": parent_id,
+            }
+        },
     }
     new_step = api.request(body)["data"]["copyStep"]["step"]
     return new_step
+
+
+def check_if_standard_step_and_add(
+    api: Api,
+    source_api: Api,
+    step: dict,
+    step_map: dict,
+    source_procedure_data: dict,
+    procedure_id: int,
+    parent_id: int = None,
+):
+    if step["isDerivedStep"]:
+        logger.info("Step is derived step. Checking if standard step already exists.")
+        reference_standard_step = find_existing_standard_step(api, step["title"])
+        if not reference_standard_step:
+            logger.info("Standard step does not exist, creating a new one.")
+            standard_step = load_standard_step(source_api, step["standardStep"]["id"])
+            reference_standard_step = add_step(
+                api,
+                standard_step,
+                source_procedure_data,
+                procedure_id,
+                source_api,
+                step_map,
+                is_standard_step=True,
+            )
+        derived_step = copy_step_into_procedure(
+            api, reference_standard_step["id"], procedure_id, parent_id
+        )
+        step_map[step["id"]] = derived_step["id"]
+    else:
+        add_step(
+            api,
+            step,
+            source_procedure_data,
+            procedure_id,
+            source_api,
+            step_map,
+            parent_step_id=parent_id,
+        )
 
 
 def add_steps(
@@ -293,31 +352,32 @@ def add_steps(
     logger.info(f"Adding {len(source_procedure_data['steps'])} step(s) to procedure")
     step_map = {}
     dependencies = {}
-    for step in source_procedure_data["steps"]:
+    for index, step in enumerate(source_procedure_data["steps"]):
+        logger.info(f"Processing step {index + 1}")
         for upstream_step_id in step["upstreamStepIds"]:
             dependencies[step["id"]] = upstream_step_id
-        if step["isDerivedStep"]:
-            reference_standard_step = find_existing_standard_step(api, step["title"])
-            if not reference_standard_step:
-                standard_step = load_standard_step(source_api, step["originStepId"])
-                reference_standard_step = add_step(
-                    api,
-                    standard_step,
-                    source_procedure_data,
-                    procedure_id,
-                    source_api,
-                    step_map,
-                    is_standard_step=True,
-                )
-            derived_step = copy_step_into_procedure(
-                api, reference_standard_step["id"], procedure_id
-            )
-            step_map[step["id"]] = derived_step["id"]
-        else:
-            add_step(
-                api, step, source_procedure_data, procedure_id, source_api, step_map
-            )
+        check_if_standard_step_and_add(
+            api, source_api, step, step_map, source_procedure_data, procedure_id
+        )
     add_dependencies(api, step_map, dependencies)
+
+
+def get_role(api: Api, name: str):
+    """Check if role already exists and if not, create it."""
+    request_body = {
+        "query": queries.GET_ROLES,
+        "variables": {"filters": {"name": {"eq": name}}},
+    }
+    existing_roles = api.request(request_body)["data"]["roles"]["edges"]
+    if existing_roles:
+        return existing_roles[0]["node"]
+    else:
+        new_role_request_body = {
+            "query": queries.CREATE_ROLE,
+            "variables": {"input": {"name": name}},
+        }
+        new_role = api.request(new_role_request_body)["data"]
+        return new_role["createRole"]["role"]
 
 
 def get_label(api: Api, value: str):

@@ -91,6 +91,16 @@ GET_ROLES = """
     }
 """
 
+CREATE_ROLE = """
+    mutation CreateRole($input: CreateRoleInput!) {
+        createRole(input: $input) {
+            role {
+                id name
+            }
+        }
+    }
+"""
+
 GET_TEAMS = """
     query GetTeams($filters: TeamsInputFilters) {
         teams(filters: $filters) {
@@ -190,7 +200,10 @@ GET_PROCEDURE = """
                                 index
                                 header
                                 options
-                                signoffRoleId
+                                signoffRole {
+                                    id
+                                    name
+                                }
                                 type
                             }
                         }
@@ -217,6 +230,9 @@ GET_PROCEDURE = """
                 parentId
                 position
                 slateContent
+                standardStep {
+                    id
+                }
                 steps {
                     assets {
                         filename
@@ -232,7 +248,10 @@ GET_PROCEDURE = """
                                 index
                                 header
                                 options
-                                signoffRoleId
+                                signoffRole {
+                                    id
+                                    name
+                                }
                                 type
                             }
                         }
@@ -259,6 +278,9 @@ GET_PROCEDURE = """
                     parentId
                     position
                     slateContent
+                    standardStep {
+                        id
+                    }
                     title
                     type
                     upstreamStepIds
@@ -271,6 +293,10 @@ GET_PROCEDURE = """
                         name
                         options
                         required
+                        signoffRole {
+                            id
+                            name
+                        }
                         type
                         unit
                         validations {
@@ -291,6 +317,10 @@ GET_PROCEDURE = """
                     name
                     options
                     required
+                    signoffRole {
+                        id
+                        name
+                    }
                     type
                     unit
                     validations {
@@ -332,7 +362,15 @@ CREATE_STEP = """
                 content
                 createdById
                 datagrid {
-                    columns { editable header type id prevId unit signoffRoleId options }
+                    columns {
+                        editable
+                        header
+                        type
+                        id
+                        prevId
+                        unit
+                        options 
+                    }
                     rows { id prevId data }
                 }
                 entityId
@@ -606,7 +644,10 @@ GET_STEP = """
                         index
                         header
                         options
-                        signoffRoleId
+                        signoffRole {
+                            id
+                            name
+                        } 
                         type
                     }
                 }
@@ -633,6 +674,9 @@ GET_STEP = """
             parentId
             position
             slateContent
+            standardStep {
+                id
+            }
             steps {
                 assets {
                     filename
@@ -648,7 +692,10 @@ GET_STEP = """
                             index
                             header
                             options
-                            signoffRoleId
+                            signoffRole {
+                                id
+                                name
+                            } 
                             type
                         }
                     }
@@ -675,6 +722,9 @@ GET_STEP = """
                 parentId
                 position
                 slateContent
+                standardStep {
+                    id
+                }
                 title
                 type
                 upstreamStepIds
@@ -687,6 +737,10 @@ GET_STEP = """
                     name
                     options
                     required
+                    signoffRole {
+                        id
+                        name
+                    }
                     type
                     unit
                     validations {
@@ -707,6 +761,10 @@ GET_STEP = """
                 name
                 options
                 required
+                signoffRole {
+                    id
+                    name
+                }
                 type
                 unit
                 validations {
@@ -719,8 +777,8 @@ GET_STEP = """
 """
 
 GET_STEPS = """
-    query getSteps($filters: StepsFilters) {
-        steps(filters: $filters) {
+    query getSteps($filters: StepsFilters, $sort: [StepSortEnum]) {
+        steps(filters: $filters, sort: $sort) {
             edges {
                 node {
                     assets {
@@ -737,7 +795,10 @@ GET_STEPS = """
                                 index
                                 header
                                 options
-                                signoffRoleId
+                                signoffRole {
+                                    id
+                                    name
+                                } 
                                 type
                             }
                         }
@@ -764,6 +825,9 @@ GET_STEPS = """
                     parentId
                     position
                     slateContent
+                    standardStep {
+                        id
+                    }
                     steps {
                         assets {
                             filename
@@ -779,7 +843,10 @@ GET_STEPS = """
                                     index
                                     header
                                     options
-                                    signoffRoleId
+                                    signoffRole {
+                                        id
+                                        name
+                                    } 
                                     type
                                 }
                             }
@@ -806,6 +873,9 @@ GET_STEPS = """
                         parentId
                         position
                         slateContent
+                        standardStep {
+                            id
+                        }
                         title
                         type
                         upstreamStepIds
@@ -817,6 +887,10 @@ GET_STEPS = """
                             allowedIonType
                             name
                             options
+                            signoffRole {
+                                id
+                                name
+                            }
                             validations {
                                 functionId
                                 fieldId
@@ -834,6 +908,10 @@ GET_STEPS = """
                         allowedIonType
                         name
                         options
+                        signoffRole {
+                            id
+                            name
+                        }
                         validations {
                             functionId
                             fieldId

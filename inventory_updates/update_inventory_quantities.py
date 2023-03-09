@@ -57,6 +57,7 @@ def update_inventory(api: Api, inventory: dict, new_quantity: float):
     logger.info(f"Response: {res}")
     return res["data"]["updatePartInventory"]["partInventory"]
 
+
 def update_abom_item(api: Api, abom_item: dict, new_quantity: float):
     """Update abom item quantity."""
     request_body = {
@@ -71,7 +72,8 @@ def update_abom_item(api: Api, abom_item: dict, new_quantity: float):
     }
     res = api.request(request_body)
     logger.info(f"Response: {res}")
-    return res["data"]["updatePartInventory"]["partInventory"]
+    return res["data"]["updateAbomItem"]["abomitem"]
+
 
 def update_inventory_quantities(api, csv_data):
     items_length = len(csv_data) - 1
@@ -82,12 +84,18 @@ def update_inventory_quantities(api, csv_data):
         logger.info(f"Processing row {index}/{items_length}")
         inventory = get_inventory(api, row[0])
         if inventory["status"] not in ["AVAILABLE", "UNAVAILABLE"]:
-            print(f"Skipping inventory because it is not available. Status: {inventory['status']}")
+            print(
+                f"Skipping inventory because it is not available. Status: {inventory['status']}"
+            )
             continue
         abom_items = inventory["abomItems"]
         # If aBOM quantities are out of sync with inventory quantities then it causes issues when trying
         # to update the inventory.
-        if abom_items and len(abom_items) == 1 and abom_items[0]["quantity"] > inventory["quantity"]:
+        if (
+            abom_items
+            and len(abom_items) == 1
+            and abom_items[0]["quantity"] > inventory["quantity"]
+        ):
             update_abom_item(api, abom_items[0], inventory["quantity"])
 
         # Remove excess 0s at end of decimal
