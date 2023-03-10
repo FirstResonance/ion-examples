@@ -222,15 +222,18 @@ def add_step(
     logger.info(f"Replacing step slate content references to file attachments")
     slate_content = step["slateContent"]
     if slate_content:
-        expression = "reference.: (?P<id>\d*)"
+        expression = "reference.: (?P<id>.\d*)"
         # Need to convert first to a string (json.dumps) so the text can be replaced.
         # Uses a regex match to find all references
         match_list = reversed(list(re.finditer(expression, json.dumps(slate_content))))
         slate_content_updated = False
         for match in match_list:
+            existing_file_attachment_id = match.groupdict()["id"]
+            if not str.isdigit(existing_file_attachment_id[0]):
+                existing_file_attachment_id = existing_file_attachment_id[1:]
             # Getting existing file attachment data
             existing_file_attachment = get_file_attachment_info(
-                source_api, match.groupdict()["id"]
+                source_api, existing_file_attachment_id
             )
             # Uploading file to target env
             new_file_attachment = add_asset(api, existing_file_attachment, new_step)
