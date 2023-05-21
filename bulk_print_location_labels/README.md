@@ -1,5 +1,5 @@
-# Procedure export
-Use this script to bulk print location barcodes based on a csv script.
+# Bulk print location labels
+Use this script to bulk print location barcodes via a script from a csv file.
 
 
 ## Setup
