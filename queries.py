@@ -980,3 +980,37 @@ UPDATE_ABOM_ITEM = """
         }
     }
 """
+
+GET_LOCATION = """
+    query GetLocation($id: ID!) {
+        location(id: $id) {
+            id
+            name
+            entityId
+        }
+    }
+"""
+
+CREATE_BARCODE_LABEL = """
+    mutation createBarcodeLabel($input: CreateBarcodeLabelInput!) {
+        createBarcodeLabel(input: $input) {
+            barcodeLabel {
+                barcode
+            }
+        }
+    }
+"""
+
+GET_TEMPLATES = """
+    query GetTemplates($filters: BarcodeTemplatesInputFilters!){
+        barcodeTemplates(filters:$filters) {
+            edges {
+                node {
+                    id
+                    name
+                    entityType
+                }
+            }
+        }
+    }
+"""
