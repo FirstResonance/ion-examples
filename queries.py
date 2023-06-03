@@ -1014,3 +1014,66 @@ GET_TEMPLATES = """
         }
     }
 """
+
+DELETE_PURCHASE = """
+    mutation deletePurchaseOrder($id:ID!, $etag:String!){
+        deletePurchaseOrder(id:$id, etag:$etag){
+            id
+        }
+    }
+"""
+
+GET_RECEIPTS = """
+    query receipts($filters:ReceiptsInputFilters){
+        receipts(filters: $filters) {
+            edges {
+                node {
+                    id
+                    _etag
+                }
+            }
+        }
+    }
+"""
+
+DELETE_RECEIPT = """
+    mutation deleteReceipt($id:ID!, $etag:String!) {
+        deleteReceipt(id:$id, etag:$etag) {
+            id
+        }
+    }
+"""
+
+DELETE_PURCHASE_LINE = """
+    mutation deletePurchaseOrderLine($id:ID!, $etag:String!){
+        deletePurchaseOrderLine(id:$id,etag:$etag) {
+            id 
+        }
+    }
+"""
+
+GET_PURCHASE_LINES = """ 
+    query PurchaseOrderLines($filterss: PurchaseOrderLinesInputFilters) {
+        purchaseOrderLines(filters: $filterss) {
+            edges {
+                node {
+                    id
+                    _etag
+                }
+            }
+        }
+    }
+"""
+
+GET_PURCHASES = """
+    query PurchaseOrders($filterss: PurchaseOrdersInputFilters) {
+        purchaseOrders(filters: $filterss) {
+            edges {
+                node {
+                    id
+                    _etag
+                }
+            }
+        }
+    }
+"""

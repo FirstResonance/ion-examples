@@ -222,7 +222,7 @@ def add_step(
     logger.info(f"Replacing step slate content references to file attachments")
     slate_content = step["slateContent"]
     if slate_content:
-        expression = "reference.: (\'|\")?(?P<id>.\d*)(\'|\")?"
+        expression = "reference.: ('|\")?(?P<id>.\d*)('|\")?"
         # Need to convert first to a string (json.dumps) so the text can be replaced.
         # Uses a regex match to find all references
         match_list = reversed(list(re.finditer(expression, json.dumps(slate_content))))
