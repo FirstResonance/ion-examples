@@ -1072,6 +1072,9 @@ GET_PURCHASES = """
                 node {
                     id
                     _etag
+                    approvals {
+                        id
+                    }
                 }
             }
         }

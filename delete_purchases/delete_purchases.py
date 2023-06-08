@@ -72,7 +72,7 @@ def delete_purchase_lines(purchase_lines, api):
 def delete_purchases(purchases, api):
     for purchase in purchases["purchaseOrders"]["edges"]:
         purchase_id = purchase["node"]["id"]
-        if purchase_id in PURCHASES_TO_SKIP:
+        if purchase_id in PURCHASES_TO_SKIP or purchase['node']['approvals']:
             logger.info(f'Skipping purchase id: {purchase_id}')
             continue
         logger.info(f'Deleting purchase id: {purchase_id}')
