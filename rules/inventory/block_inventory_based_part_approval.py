@@ -11,5 +11,5 @@ input = {
   "ruleType": "VALIDATION",
   "errorState": "ALLOW",
   "context": "{ partInventory(id: $id) { part { id attributes { key value } } } }",
-  "code": "if (context.get('partInventory', {}).get('part', {}).get('attributes', {}).get('key') == 'Approved' and context.get('partInventory', {}).get('part', {}).get('attributes', {}).get('value') != True): raise ValidationError()"
+  "code": "if (not any([attr['value'] for attr in context.get('partInventory', {}).get('part', {}).get('attributes', [{}]) if attr['key'] == 'Approved'])): raise ValidationError()"
 }
