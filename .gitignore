@@ -136,3 +136,6 @@ ion_examples/
 
 # log
 log.txt
+
+# DS store
+.DS_Store
