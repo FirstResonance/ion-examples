@@ -48,7 +48,6 @@ def upload_file_to_step(api: Api, run_id: int, file_path: str) -> bool:
     upload_request = api.request(
         {"query": queries.CREATE_FILE_ATTACHMENT, "variables": attachment_data}
     )
-    #import pdb ; pdb.set_trace()
     url = upload_request["data"]["createFileAttachment"]["uploadUrl"]
 
     # Now, let's upload the file!
