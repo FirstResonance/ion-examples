@@ -10,6 +10,6 @@ input = {
   "eventType": "CREATE",
   "ruleType": "VALIDATION",
   "errorState": "ALLOW",
-  "context": "{ receiptItem(id: $id) { id partInventory {serialNumber lotNumber part{id trackingType}} } },
-  "if not context.get('receiptItem', {}).get('partInventory', {}).get('lotNumber') and context.get('receiptItem', {}).get('partInventory', {}).get('part', {}).get('trackingType') == 'LOT': raise ValidationError()"
+  "context": "{ receiptItem(id: $id) { id partInventory {serialNumber lotNumber part{id trackingType}} } }",
+  "code": "if not context.get('receiptItem', {}).get('partInventory', {}).get('lotNumber') and context.get('receiptItem', {}).get('partInventory', {}).get('part', {}).get('trackingType') == 'LOT': raise ValidationError()"
 }
