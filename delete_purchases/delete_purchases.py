@@ -24,7 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-8s %(message)s",
     datefmt="%a, %d %b %Y %H:%M:%S",
-    filename="log.txt",
+    filename="delete_purchases/log.txt",
     filemode="w",
 )
 
@@ -56,17 +56,6 @@ def build_list_aboms_items(purchase_order_lines):
                 po_id = purchase_order_line["node"]["purchaseOrder"]["id"]
                 PURCHASES_TO_SKIP.append(po_id)
 
-def delete_receipts(receipts, api):
-    for receipt in receipts["receipts"]["edges"]:
-        receipt_id = receipt["node"]["id"]
-        logger.info(f'Deleting receipt id: ',receipt_id)
-        etag = receipt["node"]["_etag"]
-        request_body = {
-            "query": queries.DELETE_RECEIPT,
-            "variables": {"id": receipt_id, "etag": etag},
-        }
-        api.request(request_body)
-
 def delete_purchase_lines(purchase_lines, api):
     for purchase_line in purchase_lines["purchaseOrderLines"]["edges"]:
         po_id = purchase_line["node"]["purchaseOrder"]["id"]
@@ -74,10 +63,10 @@ def delete_purchase_lines(purchase_lines, api):
         purchase_line_id = purchase_line["node"]["id"]
         etag=get_purchase_line_etag(purchase_line_id,api)
         if (po_id in PURCHASES_TO_SKIP or po_status == 'CANCELED' or po_status == 'RECEIVED'):
-            print("Skipping PO LINE",purchase_line_id)
+            logger.info(f'Skipping PO line: {purchase_line_id}')
             PURCHASES_TO_SKIP.append(po_id)
             continue
-        print("Deleting purchase line id",purchase_line_id)
+        logger.info(f'Deleting purchase line id: {purchase_line_id}')
         request_body = {
             "query": queries.DELETE_PURCHASE_LINE,
             "variables": {"id": purchase_line_id, "etag": etag},
@@ -88,13 +77,10 @@ def delete_purchases(purchases, api):
     for purchase in purchases["purchaseOrders"]["edges"]:
         purchase_id = purchase["node"]["id"]
         etag = purchase["node"]["_etag"]
-        if purchase_id in PURCHASES_TO_SKIP:
-            print("skipping purchase id",purchase_id)
+        if purchase_id in PURCHASES_TO_SKIP or purchase["node"]["approvals"] or purchase["node"]["fees"] or purchase["node"]["approvalRequests"]:
+            logger.info(f'skipping purchase id: {purchase_id}')
             continue
-        if purchase["node"]["approvals"] or purchase["node"]["fees"] or purchase["node"]["approvalRequests"]:
-            print("skipping purchase id", purchase_id)
-            continue
-        print("deleting purchase id",purchase_id)
+        logger.info(f'deleting purchase id: {purchase_id}')
         request_body = {
             "query": queries.DELETE_PURCHASE,
             "variables": {"id": purchase_id, "etag": etag},
@@ -118,6 +104,7 @@ if __name__ == "__main__":
             api_uri=api_uri,
             logger=logger,
         )
+
         receipts = get_receipts(ion_api)
         purchase_lines = get_purchase_lines(ion_api)
         build_list_aboms_items(purchase_lines)
