@@ -52,14 +52,14 @@ def get_purchases(api):
 def build_list_aboms_items(purchase_order_lines):
     for purchase_order_line in purchase_order_lines["purchaseOrderLines"]["edges"]:
         if "partInventories" in purchase_order_line["node"]:
-            if ((part_inventory["installed"]=="true" for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["kitted"]=="true" for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["received"]=="true" for part_inventory in purchase_order_line["node"]["partInventories"])):
+            if ((part_inventory["installed"] for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["kitted"] for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"])):
                 po_id = purchase_order_line["node"]["purchaseOrder"]["id"]
                 PURCHASES_TO_SKIP.append(po_id)
 
 def delete_receipts(receipts, api):
     for receipt in receipts["receipts"]["edges"]:
         receipt_id = receipt["node"]["id"]
-        print('Deleting receipt id: ',receipt_id)
+        logger.info(f'Deleting receipt id: ',receipt_id)
         etag = receipt["node"]["_etag"]
         request_body = {
             "query": queries.DELETE_RECEIPT,
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             client_secret=client_secret,
             auth_server=auth_server,
             api_uri=api_uri,
-           logger=logger,
+            logger=logger,
         )
         receipts = get_receipts(ion_api)
         purchase_lines = get_purchase_lines(ion_api)

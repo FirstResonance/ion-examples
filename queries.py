@@ -1027,20 +1027,20 @@ GET_RECEIPTS = """
     query receipts($filters:ReceiptsInputFilters){
         receipts(filters: $filters) {
               edges {
-      node {
-        purchaseOrderLines {
-          id
-          purchaseOrder
-          {id
-          }
-          partInventories {
-            installed
-          }
+                node {
+                    purchaseOrderLines {
+                        id
+                    purchaseOrder {
+                        id
+                    }
+                    partInventories {
+                        installed
+                    }
+                }
+            }
         }
-      }
     }
-        }
-    }
+}
 """
 
 DELETE_RECEIPT = """
