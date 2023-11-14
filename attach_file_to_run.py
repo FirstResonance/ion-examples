@@ -16,7 +16,7 @@ import os
 import requests
 from utilities.api import Api
 import queries
-from config_example import config
+from config import config
 
 
 def upload_file_to_step(api: Api, run_id: int, file_path: str) -> bool:

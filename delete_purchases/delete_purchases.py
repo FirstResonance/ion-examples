@@ -39,50 +39,53 @@ def get_purchase_lines(api):
     request_body = {"query": queries.GET_PURCHASE_LINES}
     return api.request(request_body)["data"]
 
+def get_purchase_line_etag(id,api):
+    request_body = {"query": queries.GET_PURCHASE_LINE_ETAG, "variables": {"id": id}}
+    purchase_line = api.request(request_body)["data"]
+    _etag = purchase_line["purchaseOrderLine"]["_etag"]
+    return _etag
 
 def get_purchases(api):
     request_body = {"query": queries.GET_PURCHASES}
     return api.request(request_body)["data"]
 
-
-def delete_receipts(receipts, api):
-    for receipt in receipts["receipts"]["edges"]:
-        receipt_id = receipt["node"]["id"]
-        logger.info(f'Deleting receipt id: {receipt_id}')
-        etag = receipt["node"]["_etag"]
-        request_body = {
-            "query": queries.DELETE_RECEIPT,
-            "variables": {"id": receipt_id, "etag": etag},
-        }
-        api.request(request_body)
-
+def build_list_aboms_items(purchase_order_lines):
+    for purchase_order_line in purchase_order_lines["purchaseOrderLines"]["edges"]:
+        if "partInventories" in purchase_order_line["node"]:
+            if ((part_inventory["installed"] for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["kitted"] for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"])):
+                po_id = purchase_order_line["node"]["purchaseOrder"]["id"]
+                PURCHASES_TO_SKIP.append(po_id)
 
 def delete_purchase_lines(purchase_lines, api):
     for purchase_line in purchase_lines["purchaseOrderLines"]["edges"]:
+        po_id = purchase_line["node"]["purchaseOrder"]["id"]
+        po_status = purchase_line["node"]["purchaseOrder"]["status"]
         purchase_line_id = purchase_line["node"]["id"]
+        etag = get_purchase_line_etag(purchase_line_id,api)
+        if (po_id in PURCHASES_TO_SKIP or po_status == 'CANCELED' or po_status == 'RECEIVED'):
+            logger.info(f'Skipping PO line: {purchase_line_id}')
+            PURCHASES_TO_SKIP.append(po_id)
+            continue
         logger.info(f'Deleting purchase line id: {purchase_line_id}')
-        etag = purchase_line["node"]["_etag"]
         request_body = {
             "query": queries.DELETE_PURCHASE_LINE,
             "variables": {"id": purchase_line_id, "etag": etag},
         }
         api.request(request_body)
 
-
 def delete_purchases(purchases, api):
     for purchase in purchases["purchaseOrders"]["edges"]:
         purchase_id = purchase["node"]["id"]
-        if purchase_id in PURCHASES_TO_SKIP or purchase['node']['approvals']:
-            logger.info(f'Skipping purchase id: {purchase_id}')
-            continue
-        logger.info(f'Deleting purchase id: {purchase_id}')
         etag = purchase["node"]["_etag"]
+        if purchase_id in PURCHASES_TO_SKIP or purchase["node"]["approvals"] or purchase["node"]["fees"] or purchase["node"]["approvalRequests"]:
+            logger.info(f'skipping purchase id: {purchase_id}')
+            continue
+        logger.info(f'deleting purchase id: {purchase_id}')
         request_body = {
             "query": queries.DELETE_PURCHASE,
             "variables": {"id": purchase_id, "etag": etag},
         }
         api.request(request_body)
-
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Bulk print location barcode labels.")
@@ -101,12 +104,15 @@ if __name__ == "__main__":
             api_uri=api_uri,
             logger=logger,
         )
+
         receipts = get_receipts(ion_api)
         purchase_lines = get_purchase_lines(ion_api)
-        delete_receipts(receipts, ion_api)
+        build_list_aboms_items(purchase_lines)
         delete_purchase_lines(purchase_lines, ion_api)
         purchases = get_purchases(ion_api)
-        delete_purchases(purchases, ion_api)
+        delete_purchases(purchases,ion_api)
+    except KeyError as e:
+        print(f"KeyError occurred: {e}")
     except Exception as e:
         error = f"Error occurred while running script: {e}"
         print(error)

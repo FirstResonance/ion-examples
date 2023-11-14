@@ -1026,10 +1026,17 @@ DELETE_PURCHASE = """
 GET_RECEIPTS = """
     query receipts($filters:ReceiptsInputFilters){
         receipts(filters: $filters) {
-            edges {
+              edges {
                 node {
-                    id
-                    _etag
+                    purchaseOrderLines {
+                        id
+                        purchaseOrder {
+                            id
+                        }
+                        partInventories {
+                            installed
+                        }
+                    }
                 }
             }
         }
@@ -1052,6 +1059,15 @@ DELETE_PURCHASE_LINE = """
     }
 """
 
+GET_PURCHASE_LINE_ETAG = """
+    query PurchaseOrderLine($id:ID!) {
+        purchaseOrderLine(id:$id)
+        {
+            _etag
+        }
+    }
+"""
+
 GET_PURCHASE_LINES = """ 
     query PurchaseOrderLines($filterss: PurchaseOrderLinesInputFilters) {
         purchaseOrderLines(filters: $filterss) {
@@ -1059,10 +1075,20 @@ GET_PURCHASE_LINES = """
                 node {
                     id
                     _etag
+                    partInventories {
+                    installed
+                    kitted
+                    received
+                    id
+                    }
+                    purchaseOrder {
+                        id
+                        status 
+                    }
                 }
             }
         }
-    }
+    }    
 """
 
 GET_PURCHASES = """
@@ -1073,6 +1099,14 @@ GET_PURCHASES = """
                     id
                     _etag
                     approvals {
+                        id
+                    }
+                    fees
+                    {
+                        id
+                    }
+                    approvalRequests
+                    {
                         id
                     }
                 }
