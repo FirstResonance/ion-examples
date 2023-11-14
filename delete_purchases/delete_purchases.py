@@ -59,9 +59,9 @@ def build_list_aboms_items(purchase_order_lines):
 def delete_purchase_lines(purchase_lines, api):
     for purchase_line in purchase_lines["purchaseOrderLines"]["edges"]:
         po_id = purchase_line["node"]["purchaseOrder"]["id"]
-        po_status =  purchase_line["node"]["purchaseOrder"]["status"]
+        po_status = purchase_line["node"]["purchaseOrder"]["status"]
         purchase_line_id = purchase_line["node"]["id"]
-        etag=get_purchase_line_etag(purchase_line_id,api)
+        etag = get_purchase_line_etag(purchase_line_id,api)
         if (po_id in PURCHASES_TO_SKIP or po_status == 'CANCELED' or po_status == 'RECEIVED'):
             logger.info(f'Skipping PO line: {purchase_line_id}')
             PURCHASES_TO_SKIP.append(po_id)

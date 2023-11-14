@@ -1030,17 +1030,17 @@ GET_RECEIPTS = """
                 node {
                     purchaseOrderLines {
                         id
-                    purchaseOrder {
-                        id
-                    }
-                    partInventories {
-                        installed
+                        purchaseOrder {
+                            id
+                        }
+                        partInventories {
+                            installed
+                        }
                     }
                 }
             }
         }
     }
-}
 """
 
 DELETE_RECEIPT = """
@@ -1060,13 +1060,12 @@ DELETE_PURCHASE_LINE = """
 """
 
 GET_PURCHASE_LINE_ETAG = """
-query PurchaseOrderLine($id:ID!) {
-    purchaseOrderLine(id:$id)
-    {
-        _etag
+    query PurchaseOrderLine($id:ID!) {
+        purchaseOrderLine(id:$id)
+        {
+            _etag
+        }
     }
-}
-
 """
 
 GET_PURCHASE_LINES = """ 
@@ -1083,13 +1082,13 @@ GET_PURCHASE_LINES = """
                     id
                     }
                     purchaseOrder {
-                id
-                status 
+                        id
+                        status 
+                    }
                 }
             }
         }
-    }
-}    
+    }    
 """
 
 GET_PURCHASES = """
