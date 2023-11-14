@@ -24,7 +24,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-8s %(message)s",
     datefmt="%a, %d %b %Y %H:%M:%S",
-    filename="delete_purchases/log.txt",
+    filename="log.txt",
     filemode="w",
 )
 
@@ -52,9 +52,9 @@ def get_purchases(api):
 def build_list_aboms_items(purchase_order_lines):
     for purchase_order_line in purchase_order_lines["purchaseOrderLines"]["edges"]:
         if "partInventories" in purchase_order_line["node"]:
-            if any(part_inventory["installed"] for part_inventory in purchase_order_line["node"]["partInventories"]) or any(part_inventory["kitted"] for part_inventory in purchase_order_line["node"]["partInventories"])or any(part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"]):
+            if ((part_inventory["installed"]=="true" for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["kitted"]=="true" for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["received"]=="true" for part_inventory in purchase_order_line["node"]["partInventories"])):
                 po_id = purchase_order_line["node"]["purchaseOrder"]["id"]
-                PURCHASES_TO_SKIP.add(po_id)
+                PURCHASES_TO_SKIP.append(po_id)
 
 def delete_receipts(receipts, api):
     for receipt in receipts["receipts"]["edges"]:
@@ -73,9 +73,9 @@ def delete_purchase_lines(purchase_lines, api):
         po_status =  purchase_line["node"]["purchaseOrder"]["status"]
         purchase_line_id = purchase_line["node"]["id"]
         etag=get_purchase_line_etag(purchase_line_id,api)
-        if po_id in PURCHASES_TO_SKIP or po_status == 'CANCELED' or po_status == 'RECEIVED':
+        if (po_id in PURCHASES_TO_SKIP or po_status == 'CANCELED' or po_status == 'RECEIVED'):
             print("Skipping PO LINE",purchase_line_id)
-            PURCHASES_TO_SKIP.add(po_id)
+            PURCHASES_TO_SKIP.append(po_id)
             continue
         print("Deleting purchase line id",purchase_line_id)
         request_body = {
@@ -120,6 +120,8 @@ if __name__ == "__main__":
         )
         receipts = get_receipts(ion_api)
         purchase_lines = get_purchase_lines(ion_api)
+        build_list_aboms_items(purchase_lines)
+        delete_purchase_lines(purchase_lines, ion_api)
         purchases = get_purchases(ion_api)
         delete_purchases(purchases,ion_api)
     except KeyError as e:
