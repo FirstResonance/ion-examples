@@ -65,12 +65,14 @@ def build_list_aboms_items(purchase_order_lines):
         if "partInventories" in purchase_order_line["node"]:
             if (any(part_inventory["installed"] for part_inventory in purchase_order_line["node"]["partInventories"]) or 
                 any(part_inventory["kitted"] for part_inventory in purchase_order_line["node"]["partInventories"]) or 
-                any(part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"]) or 
+                any(part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"]) or
                 any(abom_child.get("partInventoryId") is not None for part_inventory in purchase_order_line["node"]["partInventories"] for abom_child in part_inventory.get("abomChildren", []))):
                 po_id = purchase_order_line["node"]["purchaseOrder"]["id"]
                 if po_id not in PURCHASES_TO_SKIP:
                     PURCHASES_TO_SKIP.append(po_id)
-
+        if purchase_order_line["node"]["status"] == "RECEIVED":
+            PURCHASES_TO_SKIP.append(purchase_order_line["node"]["purchaseOrder"]["id"])
+    print(PURCHASES_TO_SKIP)
 def delete_purchase_lines(purchase_lines, api):
     for purchase_line in purchase_lines["purchaseOrderLines"]["edges"]:
         po_id = purchase_line["node"]["purchaseOrder"]["id"]

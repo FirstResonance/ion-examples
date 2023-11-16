@@ -1085,6 +1085,7 @@ GET_PURCHASE_LINES = """
                 node {
                     id
                     _etag
+                    status
                     partInventories {
                     installed
                     kitted
