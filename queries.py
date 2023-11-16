@@ -1015,6 +1015,16 @@ GET_TEMPLATES = """
     }
 """
 
+UPDATE_PURCHASE = """
+    mutation UpdatePurchaseOrder($input:UpdatePurchaseOrderInput!) {
+        updatePurchaseOrder(input:$input)
+        {
+            purchaseOrder {
+                id
+            }
+        }
+    }
+"""
 DELETE_PURCHASE = """
     mutation deletePurchaseOrder($id:ID!, $etag:String!){
         deletePurchaseOrder(id:$id, etag:$etag){
@@ -1080,9 +1090,14 @@ GET_PURCHASE_LINES = """
                     kitted
                     received
                     id
+                    abomChildren {
+                        id
+                        partInventoryId
+                    }
                     }
                     purchaseOrder {
                         id
+                        _etag
                         status 
                     }
                 }
@@ -1098,6 +1113,7 @@ GET_PURCHASES = """
                 node {
                     id
                     _etag
+                    status
                     approvals {
                         id
                     }

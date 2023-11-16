@@ -34,7 +34,6 @@ def get_receipts(api):
     request_body = {"query": queries.GET_RECEIPTS}
     return api.request(request_body)["data"]
 
-
 def get_purchase_lines(api):
     request_body = {"query": queries.GET_PURCHASE_LINES}
     return api.request(request_body)["data"]
@@ -49,24 +48,43 @@ def get_purchases(api):
     request_body = {"query": queries.GET_PURCHASES}
     return api.request(request_body)["data"]
 
+def update_ordered_status_to_draft(po_id,po_etag,api):
+    request_body = {
+                "query": queries.UPDATE_PURCHASE,
+                "variables": { "input": {
+                "id": po_id,
+                "etag": po_etag,
+                "status": "DRAFT"
+                        }
+                    }
+                }   
+    api.request(request_body)
+
 def build_list_aboms_items(purchase_order_lines):
     for purchase_order_line in purchase_order_lines["purchaseOrderLines"]["edges"]:
         if "partInventories" in purchase_order_line["node"]:
-            if ((part_inventory["installed"] for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["kitted"] for part_inventory in purchase_order_line["node"]["partInventories"]) or (part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"])):
+            if (any(part_inventory["installed"] for part_inventory in purchase_order_line["node"]["partInventories"]) or 
+                any(part_inventory["kitted"] for part_inventory in purchase_order_line["node"]["partInventories"]) or 
+                any(part_inventory["received"] for part_inventory in purchase_order_line["node"]["partInventories"]) or 
+                any(abom_child.get("partInventoryId") is not None for part_inventory in purchase_order_line["node"]["partInventories"] for abom_child in part_inventory.get("abomChildren", []))):
                 po_id = purchase_order_line["node"]["purchaseOrder"]["id"]
-                PURCHASES_TO_SKIP.append(po_id)
+                if po_id not in PURCHASES_TO_SKIP:
+                    PURCHASES_TO_SKIP.append(po_id)
 
 def delete_purchase_lines(purchase_lines, api):
     for purchase_line in purchase_lines["purchaseOrderLines"]["edges"]:
         po_id = purchase_line["node"]["purchaseOrder"]["id"]
+        po_etag = purchase_line["node"]["purchaseOrder"]["_etag"]
         po_status = purchase_line["node"]["purchaseOrder"]["status"]
         purchase_line_id = purchase_line["node"]["id"]
         etag = get_purchase_line_etag(purchase_line_id,api)
-        if (po_id in PURCHASES_TO_SKIP or po_status == 'CANCELED' or po_status == 'RECEIVED'):
+        if (po_id in PURCHASES_TO_SKIP):
             logger.info(f'Skipping PO line: {purchase_line_id}')
-            PURCHASES_TO_SKIP.append(po_id)
             continue
+        if (po_status == "ORDERED"):
+            update_ordered_status_to_draft(po_id,po_etag,api)
         logger.info(f'Deleting purchase line id: {purchase_line_id}')
+        etag = get_purchase_line_etag(purchase_line_id,api)
         request_body = {
             "query": queries.DELETE_PURCHASE_LINE,
             "variables": {"id": purchase_line_id, "etag": etag},
@@ -107,9 +125,9 @@ if __name__ == "__main__":
 
         receipts = get_receipts(ion_api)
         purchase_lines = get_purchase_lines(ion_api)
+        purchases = get_purchases(ion_api)
         build_list_aboms_items(purchase_lines)
         delete_purchase_lines(purchase_lines, ion_api)
-        purchases = get_purchases(ion_api)
         delete_purchases(purchases,ion_api)
     except KeyError as e:
         print(f"KeyError occurred: {e}")
