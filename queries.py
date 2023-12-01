@@ -1130,3 +1130,32 @@ GET_PURCHASES = """
         }
     }
 """
+
+UPDATE_ISSUE_ATTRIBUTE = """
+    mutation UpdateIssueAttribute($input: UpdateIssueAttributeInput!) {
+        updateIssueAttribute(input: $input) {
+            issueAttribute {
+                Etag
+                key
+                value
+            }
+        }
+    }
+"""
+
+GET_ISSUE_ATTRIBUTES = """
+    query Issues {
+        issues {
+            edges {
+                node {
+                    id
+                    attributes {
+                        Etag
+                        key
+                        value
+                    }
+                }
+            }
+        }
+    }
+"""
