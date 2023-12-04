@@ -1,8 +1,6 @@
 """
-Delete purchases.
-Deletes all PO lines (ones associated with aboms, kits, or that have been received) can't be deleted. 
-Deletes all purchase orders that don't have receipts or PO lines, approvals, fees, or approval requests.
-You can additionally add PO ids that you don't want deleted in PURCHASES_TO_SKIP
+Updates attributes based on csv input script. Required inputs are issue_id, key, value.
+Currently the only key being updated is "Defect Code", this can be modified to do more in the future. 
 """
 import os
 import sys
@@ -43,7 +41,6 @@ def update_issue_attribute(issues,api):
         rows.append(row)
     file.close()
 
-    
     for issue in issues["issues"]["edges"]:
         issue_id = issue["node"]["id"]
         for attribute_etag in issue["node"]["attributes"]:
@@ -57,19 +54,19 @@ def update_issue_attribute(issues,api):
         request_body = {
             "query": queries.UPDATE_ISSUE_ATTRIBUTE,
             "variables": {
-                        "input": {
-                            "issueId": issue_id,
-                            "key": "Defect Code",
-                            "value": value,
-                            "etag": etag
-                        }
+                "input": {
+                    "issueId": issue_id,
+                    "key": "Defect Code",
+                    "value": value,
+                    "etag": etag
+                }
             }
         }
         api.request(request_body)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Bulk print location barcode labels.")
+    parser = argparse.ArgumentParser(description="Use CSV to update custom attributes")
     try:
         auth_server = config["ION_AUTH_SERVER"]
         api_uri = config["ION_API_URI"]
