@@ -117,8 +117,9 @@ def add_field_to_step(api: Api, field: dict, step_id: int):
     api.request(request_body)
 
 
-def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
+def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step: dict):
     """Add datagrid information to a step."""
+    step_id: int = step["id"]
     column_map = {}
     for column in columns["edges"]:
         column_input = column["node"].copy()
@@ -149,6 +150,13 @@ def add_datagrid_to_step(api: Api, columns: dict, rows: dict, step_id: int):
         for value in row["node"]["values"]:
             if value["type"] == "SIGNOFF":
                 continue
+            # Special handling for file attachments
+            if value["type"] == "FILE_ATTACHMENT" and value["fileAttachmentId"]:
+                existing_file_attachment = get_file_attachment_info(
+                    source_api, value["fileAttachmentId"]
+                )
+                new_file_attachment = add_asset(api, existing_file_attachment, step)
+                value["value"] = new_file_attachment["fileAttachment"]["id"]
             value_body = {
                 "query": queries.SET_DATAGRID_VALUE,
                 "variables": {
@@ -256,7 +264,7 @@ def add_step(
     if step["type"] == "DATAGRID":
         logger.info("Adding datagrid to step.")
         add_datagrid_to_step(
-            api, step["datagridColumns"], step["datagridRows"], new_step["id"]
+            api, step["datagridColumns"], step["datagridRows"], new_step
         )
     # Add child steps
     if not parent_step_id:

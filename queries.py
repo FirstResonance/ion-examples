@@ -215,7 +215,13 @@ GET_PROCEDURE = """
                             allowNotApplicable
                             index
                             required
-                            values { value columnId type }
+                            values {
+                                columnId
+                                fileAttachmentId
+                                fileAttachment { id s3Key s3Bucket entityId filename contentType }
+                                type
+                                value
+                            }
                         }
                     }
                 }
@@ -263,7 +269,13 @@ GET_PROCEDURE = """
                                 allowNotApplicable
                                 index
                                 required
-                                values { value columnId type }
+                                values {
+                                    columnId
+                                    fileAttachmentId
+                                    fileAttachment { id s3Key s3Bucket entityId filename contentType }
+                                    type
+                                    value
+                                }
                             }
                         }
                     }
@@ -659,7 +671,13 @@ GET_STEP = """
                         allowNotApplicable
                         index
                         required
-                        values { value columnId type }
+                        values {
+                            columnId
+                            fileAttachmentId
+                            fileAttachment { id s3Key s3Bucket entityId filename contentType }
+                            type
+                            value
+                        }
                     }
                 }
             }
@@ -707,7 +725,13 @@ GET_STEP = """
                             allowNotApplicable
                             index
                             required
-                            values { value columnId type }
+                            values {
+                                columnId
+                                fileAttachmentId
+                                fileAttachment { id s3Key s3Bucket entityId filename contentType }
+                                type
+                                value
+                            }
                         }
                     }
                 }
@@ -810,7 +834,13 @@ GET_STEPS = """
                                 allowNotApplicable
                                 index
                                 required
-                                values { value columnId type }
+                                values {
+                                    columnId
+                                    fileAttachmentId
+                                    fileAttachment { id s3Key s3Bucket entityId filename contentType }
+                                    type
+                                    value
+                                }
                             }
                         }
                     }
@@ -858,7 +888,13 @@ GET_STEPS = """
                                     allowNotApplicable
                                     index
                                     required
-                                    values { value columnId type }
+                                    values {
+                                        columnId
+                                        fileAttachmentId
+                                        fileAttachment { id s3Key s3Bucket entityId filename contentType }
+                                        type
+                                        value
+                                    }
                                 }
                             }
                         }
