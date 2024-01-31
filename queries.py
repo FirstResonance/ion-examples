@@ -22,6 +22,26 @@ GET_RUN = """
     }
 """
 
+GET_PART_INVENTORIES = """
+query getPartInventories($filters: PartInventoriesInputFilters){
+  partInventories(filters:$filters){
+    edges{
+      node{
+        id
+        partId
+        quantityAvailable
+        quantity
+        part{
+          partNumber
+          description
+          revision
+        }
+      }
+    }
+  }
+}
+"""
+
 CREATE_RUN_STEP = """
     mutation CreateRunStep($input: CreateRunStepInput!) {
         createRunStep(input: $input) {

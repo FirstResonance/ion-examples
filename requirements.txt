@@ -14,3 +14,5 @@ requests==2.24.0
 six==1.16.0
 tomli==2.0.1
 urllib3==1.25.10
+pandas
+numpy
