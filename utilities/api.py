@@ -32,7 +32,7 @@ class Api(object):
 
         auth_url = urljoin(
             f"https://{self.auth_server}",
-            "/auth/realms/api-keys/protocol/openid-connect/token",
+            "realms/api-keys/protocol/openid-connect/token",
             "oauth/token",
         )
         res = requests.post(auth_url, data=payload, headers=headers)
