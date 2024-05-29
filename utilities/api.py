@@ -2,7 +2,6 @@ import os
 import logging
 import requests
 from urllib.parse import urljoin
-import json
 
 AUTH0_DOMAIN = os.getenv("ION_AUTH_SERVER", "staging-auth.buildwithion.com")
 API_URL = os.getenv("ION_API_URI", "https://staging-api.buildwithion.com")

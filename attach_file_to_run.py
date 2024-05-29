@@ -51,10 +51,15 @@ def upload_file_to_step(api: Api, run_id: int, file_path: str) -> bool:
     url = upload_request["data"]["createFileAttachment"]["uploadUrl"]
 
     # Now, let's upload the file!
-    headers = {'Content-Type': upload_request["data"]["createFileAttachment"]["fileAttachment"]["contentType"]}
-    
-    r = requests.put(url,headers=headers,data=open(file_path, "rb"))
+    headers = {
+        "Content-Type": upload_request["data"]["createFileAttachment"][
+            "fileAttachment"
+        ]["contentType"]
+    }
+
+    r = requests.put(url, headers=headers, data=open(file_path, "rb"))
     return r.ok
+
 
 if __name__ == "__main__":
     auth_server = config["ION_AUTH_SERVER"]
@@ -70,11 +75,11 @@ if __name__ == "__main__":
         help="The path of the file you want to upload to the step.",
     )
     ion_api = Api(
-            client_id=client_id,
-            client_secret=client_secret,
-            auth_server=auth_server,
-            api_uri=api_uri,
-        )
+        client_id=client_id,
+        client_secret=client_secret,
+        auth_server=auth_server,
+        api_uri=api_uri,
+    )
     if not client_id or not client_secret:
         raise argparse.ArgumentError(
             "Must input client ID and " "client secret to run import"
