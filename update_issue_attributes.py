@@ -28,11 +28,13 @@ logging.basicConfig(
     filemode="w",
 )
 
+
 def get_issues(api):
     request_body = {"query": queries.GET_ISSUE_ATTRIBUTES}
     return api.request(request_body)["data"]
 
-def update_issue_attribute(issues,api):
+
+def update_issue_attribute(issues, api):
     file = open("issues.csv")
     csvreader = csv.reader(file)
 
@@ -50,7 +52,6 @@ def update_issue_attribute(issues,api):
                 value = row[1]
             continue
 
-    
         request_body = {
             "query": queries.UPDATE_ISSUE_ATTRIBUTE,
             "variables": {
@@ -58,9 +59,9 @@ def update_issue_attribute(issues,api):
                     "issueId": issue_id,
                     "key": "Defect Code",
                     "value": value,
-                    "etag": etag
+                    "etag": etag,
                 }
-            }
+            },
         }
         api.request(request_body)
 
@@ -83,7 +84,7 @@ if __name__ == "__main__":
             logger=logger,
         )
         issues = get_issues(ion_api)
-        update_issue_attribute(issues,ion_api)
+        update_issue_attribute(issues, ion_api)
 
     except KeyError as e:
         print(f"KeyError occurred: {e}")
