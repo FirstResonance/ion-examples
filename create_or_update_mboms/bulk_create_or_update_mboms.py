@@ -4,21 +4,18 @@ Bulk create or update mBOMs from a csv.
 import os
 import sys
 import inspect
-import re
-import decimal
-
 
 # Reset the path so it can be run from the parent directory
 currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import argparse
-from utilities.api import Api
-from utilities.csv_helper import CsvHelper
-import queries
-from config import config
-import logging
+import argparse # noqa: E402
+from utilities.api import Api  # noqa: E402
+from utilities.csv_helper import CsvHelper # noqa: E402
+import queries # noqa: E402
+from config import config # noqa: E402
+import logging # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -54,8 +51,6 @@ def convert_csv_rows_into_json(csv_data: list, is_level_notation: bool = False) 
         if index == 0:
             continue
         logger.info(f"Processing row {index}/{items_length}")
-        logger.info(f"Made on assembly value: {row[5]}")
-        logger.info(f"Made on assembly value after conv: {bool(row[5])}")
         mbom_notation: str = "level" if is_level_notation else "depth"
         input_list.append({
             mbom_notation: row[0] if is_level_notation else int(row[0]),
