@@ -1215,3 +1215,15 @@ GET_ISSUE_ATTRIBUTES = """
         }
     }
 """
+
+CREATE_OR_UPDATE_MBOMS = """
+    mutation CreateOrUpdateMboms($input:CreateOrUpdateMultipleMBomsNotationInput!){
+        createOrUpdateMultipleMboms(input:$input){
+            errorMessages{
+                rowId
+                errorMsg
+            }
+            newMbomRowIds
+        }
+    }
+"""
