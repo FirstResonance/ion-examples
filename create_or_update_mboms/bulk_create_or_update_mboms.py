@@ -29,13 +29,15 @@ logging.basicConfig(
 
 def create_or_update_mboms(api: Api, input_list: list[dict], is_level_notation: bool = False):
     """Create or update mboms."""
-    notation_var: bool = "levelInputs" if is_level_notation else "depthInputs"
+    notation_var: str = "levelInputs" if is_level_notation else "depthInputs"
+    empty_var: str = "levelInputs" if not is_level_notation else "depthInputs"
     request_body = {
         "query": queries.CREATE_OR_UPDATE_MBOMS,
         "variables": {
             "input": {
                 "importerType": "LEVEL" if is_level_notation else "DEPTH",
-                notation_var: input_list
+                notation_var: input_list,
+                empty_var: []
             }
         },
     }
