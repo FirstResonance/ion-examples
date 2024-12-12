@@ -14,7 +14,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)-8s %(message)s",
     datefmt="%a, %d %b %Y %H:%M:%S",
-    filename="bulk_print_location_labels/log.txt",
+    filename="bulk_delete_labels_from_runs/log.txt",
     filemode="w",
 )
 
