@@ -1187,6 +1187,14 @@ GET_PURCHASES = """
     }
 """
 
+GET_PURCHASE_ORDER_ETAG = """
+    query PurchaseOrder($id: ID!) {
+        purchaseOrder(id: $id) {
+            _etag
+        }
+    }
+"""
+
 UPDATE_ISSUE_ATTRIBUTE = """
     mutation UpdateIssueAttribute($input: UpdateIssueAttributeInput!) {
         updateIssueAttribute(input: $input) {
