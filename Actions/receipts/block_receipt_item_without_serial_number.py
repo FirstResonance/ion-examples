@@ -3,13 +3,19 @@ This rule will block receiving an item if the inventory does not have a serial n
 And the part is serial tracked.
 """
 
-input = {
-    "enabled": true,
-    "title": "Receiving serial-tracked parts requires that a serial number is populated",
-    "target": "RECEIPTITEM",
-    "eventType": "CREATE",
-    "ruleType": "VALIDATION",
-    "errorState": "ALLOW",
-    "context": "{ receiptItem(id: $id) { id partInventory {serialNumber lotNumber part{id trackingType}} } }",
-    "code": "if not context.get('receiptItem', {}).get('partInventory', {}).get('serialNumber') and context.get('receiptItem', {}).get('partInventory', {}).get('part', {}).get('trackingType') == 'SERIAL': raise ValidationError()",
+mutation {
+  createRule(input: {
+    title: "Receiving serial-tracked parts requires that a serial number is populated",
+    target: RECEIPTITEM,
+    ruleType: VALIDATION,
+    eventType: CREATE,
+    enabled: true,
+    context: "{\n  receiptItem(id: $id) {\n    id\n    partInventory {\n      serialNumber\n      lotNumber\n      part {\n        id\n        trackingType\n      }\n    }\n  }\n}",
+    code: "receipt_item = context.get('receiptItem') or {}\npart_inventory = receipt_item.get('partInventory') or {}\npart = part_inventory.get('part') or {}\n\ntracking_type = part.get('trackingType')\n\ntracking_type = (tracking_type or '').strip()\n\nif tracking_type == 'SERIAL':\n    if not part_inventory.get('serialNumber'):\n        raise ValidationError()",
+    errorState: BLOCK
+  }) {
+    rule {
+      id
+    }
+  }
 }
