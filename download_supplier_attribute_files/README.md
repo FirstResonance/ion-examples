@@ -14,37 +14,45 @@ This script authenticates with the ION API, queries supplier attributes containi
   pip install requests
   ```
 
-## Authentication
+## Configuration
 
-The script uses OAuth2 client credentials to authenticate with the ION API. You'll need:
-- **Client ID** - Your ION API client ID
-- **Client Secret** - Your ION API client secret
-- **Auth Server** - The ION authentication server (e.g., `auth.buildwithion.com`)
+1. Copy `config_example.py` to `config.py`:
+   ```bash
+   cp config_example.py config.py
+   ```
+
+2. Edit `config.py` with your ION API credentials:
+   ```python
+   config = {
+       "ION_AUTH_SERVER": "auth.buildwithion.com",
+       "ION_API_URI": "https://api.buildwithion.com",
+       "ION_CLIENT_ID": "your-client-id",
+       "ION_CLIENT_SECRET": "your-client-secret",
+   }
+   ```
 
 ## Usage
 
+Run from the `download_supplier_attribute_files` directory:
+
 ```bash
 python download-supplier-attribute-files.py \
-  --client-id <CLIENT_ID> \
-  --client-secret <CLIENT_SECRET> \
-  --auth-server <AUTH_SERVER> \
-  --endpoint <GRAPHQL_ENDPOINT> \
   --attribute-names <ATTRIBUTE_NAMES> \
   [--supplier-name <SUPPLIER_NAME>] \
-  [--output-dir <OUTPUT_DIR>]
+  [--output-dir <OUTPUT_DIR>] \
+  [--force] \
+  [--timeout <SECONDS>]
 ```
 
 ### Arguments
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| `--client-id` | Yes | ION API Client ID |
-| `--client-secret` | Yes | ION API Client Secret |
-| `--auth-server` | Yes | ION Auth Server (e.g., `auth.buildwithion.com`) |
-| `--endpoint` | Yes | GraphQL API endpoint URL |
 | `--attribute-names` | Yes | Comma-separated list of attribute names to download |
 | `--supplier-name` | No | Supplier name to filter by (omit to download for all suppliers) |
 | `--output-dir` | No | Output directory for downloaded files (default: current directory) |
+| `--force` | No | Overwrite existing files without warning |
+| `--timeout` | No | Download timeout in seconds (default: 60) |
 
 ## Examples
 
@@ -52,10 +60,6 @@ python download-supplier-attribute-files.py \
 
 ```bash
 python download-supplier-attribute-files.py \
-  --client-id my-client-id \
-  --client-secret my-client-secret \
-  --auth-server auth.buildwithion.com \
-  --endpoint https://api.example.com/ \
   --supplier-name "Acme Corp" \
   --attribute-names "Brochure, Sales Collateral" \
   --output-dir ./downloads
@@ -65,10 +69,6 @@ python download-supplier-attribute-files.py \
 
 ```bash
 python download-supplier-attribute-files.py \
-  --client-id my-client-id \
-  --client-secret my-client-secret \
-  --auth-server auth.buildwithion.com \
-  --endpoint https://api.example.com/ \
   --attribute-names "Brochure, Sales Collateral" \
   --output-dir ./downloads
 ```
@@ -77,11 +77,24 @@ python download-supplier-attribute-files.py \
 
 ```bash
 python download-supplier-attribute-files.py \
-  --client-id my-client-id \
-  --client-secret my-client-secret \
-  --auth-server auth.buildwithion.com \
-  --endpoint https://api.example.com/ \
   --attribute-names "Brochure"
+```
+
+### Force overwrite existing files
+
+```bash
+python download-supplier-attribute-files.py \
+  --attribute-names "Brochure" \
+  --output-dir ./downloads \
+  --force
+```
+
+### Set a custom timeout for slow connections
+
+```bash
+python download-supplier-attribute-files.py \
+  --attribute-names "Brochure" \
+  --timeout 120
 ```
 
 ## Output
@@ -99,7 +112,14 @@ For example:
 
 The script logs all operations to both:
 - Console (stdout)
-- `download-supplier-attribute-files.log` file
+- `download-supplier-attribute-files.log` file in the script directory
 
 Log entries include timestamps, log levels, and detailed information about each operation.
 
+## Features
+
+- **Pagination support**: Automatically handles large numbers of suppliers by fetching results in pages
+- **URL validation**: Validates attribute URLs before attempting to download
+- **Timeout protection**: Configurable timeout prevents hanging on slow or unresponsive servers
+- **Safe file naming**: Sanitizes supplier names and attribute keys for safe filesystem usage
+- **Overwrite protection**: By default, skips existing files (use `--force` to overwrite)
