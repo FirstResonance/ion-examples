@@ -22,6 +22,31 @@ GET_RUN = """
     }
 """
 
+GET_RUN_ENTITY_LABELS = """
+    query GetRun($id: ID!) {
+        run(id: $id) {
+          _etag
+          id
+          entityId
+          labels {
+            id
+          }
+        }
+    }
+"""
+
+UPDATE_RUN_ATTRIBUTE = """
+    mutation UpdateRunAttribute($input: UpdateRunAttributeInput!) {
+        updateRunAttribute(input: $input) {
+          runAttribute {
+           Etag
+           id
+           entityId
+          }
+        }
+    }
+"""
+
 GET_PART_INVENTORIES = """
 query getPartInventories($filters: PartInventoriesInputFilters){
   partInventories(filters:$filters){
@@ -549,6 +574,22 @@ CREATE_LABEL = """
             label {
                 id value _etag createdById updatedById
             }
+        }
+    }
+"""
+
+REMOVE_LABEL_TO_ITEM = """
+    mutation RemoveLabelFromItem($input: LabelToItemInput!) {
+        removeLabelFromItem(input: $input) {
+          entityId
+        }
+    }
+"""
+
+ADD_LABEL_TO_ITEM = """
+    mutation AddLabelToItem($input: LabelToItemInput!) {
+        addLabelToItem(input: $input) {
+          entityId
         }
     }
 """
