@@ -75,8 +75,7 @@ def get_available_printers():
     except requests.exceptions.ConnectionError:
         print(
             "Could not connect to Zebra Browser Print at localhost:9101.\n"
-            "Make sure Zebra Browser Print is installed and running:\n"
-            "  https://www.zebra.com/us/en/support-downloads/printer-software/browser-print.html"
+            "Make sure Zebra Browser Print is installed and running"
         )
         return []
     except Exception as e:
