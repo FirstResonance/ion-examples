@@ -103,9 +103,6 @@ def select_usb_printer():
     printers = get_available_printers()
     if not printers:
         return None
-    if len(printers) == 1:
-        print(f"Using printer: {printers[0].get('name', 'Unknown')}")
-        return printers[0]
     print("Available printers:")
     for i, p in enumerate(printers):
         print(f"  [{i}] {p.get('name', 'Unknown')} ({p.get('connection', 'unknown')})")
