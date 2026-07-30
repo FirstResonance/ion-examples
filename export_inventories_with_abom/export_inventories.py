@@ -1,6 +1,7 @@
 """
-Export a procedure from source environment to target environment. 
+Export a procedure from source environment to target environment.
 """
+
 import os
 import sys
 import inspect
@@ -72,16 +73,28 @@ def get_inventories(api: Api):
         for inventory in response["data"]["partInventories"]["edges"]:
             for build_requirement in inventory["node"]["buildRequirements"]:
                 for abom_installation in build_requirement["abomInstallations"]:
-                    inventories.append({
-                        "parentPartNumber": inventory["node"]["part"]["partNumber"],
-                        "parentPartDescription": inventory["node"]["part"]["description"],
-                        "serialNumber": inventory["node"]["serialNumber"],
-                        "lotNumber": inventory["node"]["lotNumber"],
-                        "childPartNumber": abom_installation["partInventory"]["part"]["partNumber"],
-                        "childPartDescription": abom_installation["partInventory"]["part"]["description"],
-                        "childSerialNumber": abom_installation["partInventory"]["serialNumber"],
-                        "childLotNumber": abom_installation["partInventory"]["lotNumber"],
-                    })
+                    inventories.append(
+                        {
+                            "parentPartNumber": inventory["node"]["part"]["partNumber"],
+                            "parentPartDescription": inventory["node"]["part"][
+                                "description"
+                            ],
+                            "serialNumber": inventory["node"]["serialNumber"],
+                            "lotNumber": inventory["node"]["lotNumber"],
+                            "childPartNumber": abom_installation["partInventory"][
+                                "part"
+                            ]["partNumber"],
+                            "childPartDescription": abom_installation["partInventory"][
+                                "part"
+                            ]["description"],
+                            "childSerialNumber": abom_installation["partInventory"][
+                                "serialNumber"
+                            ],
+                            "childLotNumber": abom_installation["partInventory"][
+                                "lotNumber"
+                            ],
+                        }
+                    )
         has_next_page = response["data"]["partInventories"]["pageInfo"]["hasNextPage"]
         after_id = response["data"]["partInventories"]["pageInfo"]["endCursor"]
     return inventories

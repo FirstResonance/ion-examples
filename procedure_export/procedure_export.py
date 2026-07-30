@@ -1,6 +1,7 @@
 """
-Export a procedure from source environment to target environment. 
+Export a procedure from source environment to target environment.
 """
+
 import os
 import sys
 import inspect
@@ -246,7 +247,7 @@ def add_step(
             # Replace slate content references
             new_slate_content = json.dumps(slate_content).replace(
                 match.group(),
-                f"reference\": {new_file_attachment['fileAttachment']['id']}",
+                f'reference": {new_file_attachment["fileAttachment"]["id"]}',
             )
             slate_content = json.loads(new_slate_content)
             slate_content_updated = True

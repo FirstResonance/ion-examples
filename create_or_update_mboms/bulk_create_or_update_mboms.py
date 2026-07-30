@@ -1,6 +1,7 @@
 """
-Bulk create or update mBOMs from a csv. 
+Bulk create or update mBOMs from a csv.
 """
+
 import os
 import sys
 import inspect
@@ -10,12 +11,12 @@ currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfram
 parentdir = os.path.dirname(currentdir)
 sys.path.insert(0, parentdir)
 
-import argparse # noqa: E402
+import argparse  # noqa: E402
 from utilities.api import Api  # noqa: E402
-from utilities.csv_helper import CsvHelper # noqa: E402
-import queries # noqa: E402
-from config import config # noqa: E402
-import logging # noqa: E402
+from utilities.csv_helper import CsvHelper  # noqa: E402
+import queries  # noqa: E402
+from config import config  # noqa: E402
+import logging  # noqa: E402
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -27,7 +28,9 @@ logging.basicConfig(
 )
 
 
-def create_or_update_mboms(api: Api, input_list: list[dict], is_level_notation: bool = False):
+def create_or_update_mboms(
+    api: Api, input_list: list[dict], is_level_notation: bool = False
+):
     """Create or update mboms."""
     notation_var: str = "levelInputs" if is_level_notation else "depthInputs"
     empty_var: str = "levelInputs" if not is_level_notation else "depthInputs"
@@ -37,7 +40,7 @@ def create_or_update_mboms(api: Api, input_list: list[dict], is_level_notation: 
             "input": {
                 "importerType": "LEVEL" if is_level_notation else "DEPTH",
                 notation_var: input_list,
-                empty_var: []
+                empty_var: [],
             }
         },
     }
@@ -45,7 +48,10 @@ def create_or_update_mboms(api: Api, input_list: list[dict], is_level_notation: 
     logger.info(f"Response: {res}")
     return res["data"]["createOrUpdateMultipleMboms"]
 
-def convert_csv_rows_into_json(csv_data: list, is_level_notation: bool = False) -> list[dict]:
+
+def convert_csv_rows_into_json(
+    csv_data: list, is_level_notation: bool = False
+) -> list[dict]:
     items_length: int = len(csv_data) - 1
     logger.info(f"{items_length} mBOM items to process.")
     input_list: list[dict] = []
@@ -54,23 +60,25 @@ def convert_csv_rows_into_json(csv_data: list, is_level_notation: bool = False) 
             continue
         logger.info(f"Processing row {index}/{items_length}")
         mbom_notation: str = "level" if is_level_notation else "depth"
-        input_list.append({
-            mbom_notation: row[0] if is_level_notation else int(row[0]),
-            "partNumber": row[1],
-            "revision": row[2],
-            "quantity": float(row[3]),
-            "substitutes": row[4],
-            "madeOnAssembly": row[5].strip().lower() == "true"
-        })
+        input_list.append(
+            {
+                mbom_notation: row[0] if is_level_notation else int(row[0]),
+                "partNumber": row[1],
+                "revision": row[2],
+                "quantity": float(row[3]),
+                "substitutes": row[4],
+                "madeOnAssembly": row[5].strip().lower() == "true",
+            }
+        )
     logger.info(f"Input list: {input_list}")
     return input_list
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Create and update mBOMs."
+    parser = argparse.ArgumentParser(description="Create and update mBOMs.")
+    parser.add_argument(
+        "--level", action="store_true", help="Use level notation for mBOM upload."
     )
-    parser.add_argument('--level', action='store_true', help='Use level notation for mBOM upload.')
     args = parser.parse_args()
     try:
         auth_server = config["ION_AUTH_SERVER"]
@@ -103,7 +111,9 @@ if __name__ == "__main__":
             for error in resp["errorMessages"]:
                 logger.info(f"In row {error['rowId']}: {error['errorMsg']}")
         else:
-            logger.info(f"Following mBOMs were created: {', '.join([str(id) for id in resp['newMbomRowIds']])}")
+            logger.info(
+                f"Following mBOMs were created: {', '.join([str(id) for id in resp['newMbomRowIds']])}"
+            )
         logger.info("Completed creates or updates of mBOMs.")
     except Exception as e:
         logger.info(f"Error occurred while running script: {e}")

@@ -1,6 +1,7 @@
 """
-Update inventory quantities from a csv. 
+Update inventory quantities from a csv.
 """
+
 import os
 import sys
 import inspect

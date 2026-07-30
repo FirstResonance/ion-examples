@@ -9,7 +9,6 @@ The ion file code flow is the following:
 2. Upload file to the S3 location at the secure URL using HTTP PUT
 """
 
-
 import argparse
 from getpass import getpass
 import os
@@ -82,7 +81,7 @@ if __name__ == "__main__":
     )
     if not client_id or not client_secret:
         raise argparse.ArgumentError(
-            "Must input client ID and " "client secret to run import"
+            "Must input client ID and client secret to run import"
         )
     parser.add_argument("run_id", type=str, help="The run to upload the file to.")
     args = parser.parse_args()

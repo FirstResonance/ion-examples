@@ -1,5 +1,5 @@
 """
-Given a csv of user emails and teams, add users to teams (see add_users_to_teams.csv). 
+Given a csv of user emails and teams, add users to teams (see add_users_to_teams.csv).
 """
 
 import argparse
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     client_secret = getpass("Client secret: ")
     if not args.client_id or not client_secret:
         raise argparse.ArgumentError(
-            "Must input client ID and " "client secret to run import"
+            "Must input client ID and client secret to run import"
         )
     api = Api(client_id=args.client_id, client_secret=client_secret)
     csv_data = CsvHelper.read_from_csv("add_users_to_teams.csv")
