@@ -1,0 +1,9 @@
+# Minimal ruff config for the ion-examples repo.
+# These two files are GraphQL mutation examples saved with a .py extension
+# (ION "Action" examples), not Python — exclude them from parsing/formatting.
+extend-exclude = [
+  "Actions/receipts/block_receipt_item_without_serial_number.py",
+  "Actions/receipts/block_receipt_item_without_lot_number.py",
+]
+
+target-version = "py38"

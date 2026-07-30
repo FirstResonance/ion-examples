@@ -1,6 +1,7 @@
 """
 Bulk print location labels.
 """
+
 import os
 import sys
 import inspect
@@ -36,6 +37,7 @@ BROWSER_PRINT_URL = "https://localhost:9101"
 # Suppress the SSL warning for the self-signed localhost cert.
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
+
 def get_templates(api):
     request_body = {
         "query": queries.GET_TEMPLATES,
@@ -64,10 +66,13 @@ def print_label_network(zpl_string, printer_ip):
     except Exception as e:
         print(f"Error with the network connection: {e}")
 
+
 def get_available_printers():
     """Return list of printer objects from the Zebra Browser Print agent."""
     try:
-        response = requests.get(f"{BROWSER_PRINT_URL}/available", verify=False, timeout=3)
+        response = requests.get(
+            f"{BROWSER_PRINT_URL}/available", verify=False, timeout=3
+        )
         response.raise_for_status()
         printers = response.json().get("printer", [])
         print(f"Found {len(printers)} printer(s): {[p.get('name') for p in printers]}")
@@ -81,6 +86,7 @@ def get_available_printers():
     except Exception as e:
         print(f"Error querying Browser Print: {e}")
         return []
+
 
 def print_label_usb(zpl_string, device):
     """POST raw ZPL to the Browser Print agent, which forwards it to the printer."""
@@ -97,6 +103,7 @@ def print_label_usb(zpl_string, device):
         print("Print job sent successfully.")
     except Exception as e:
         print(f"Error sending print job via Browser Print: {e}")
+
 
 def select_usb_printer():
     """List available printers from Browser Print and prompt the user to pick one."""
@@ -153,28 +160,38 @@ if __name__ == "__main__":
         )
         locations = get_csv_data()
         templates = get_templates(ion_api)
-        print(f'Available template: {templates}')
-        template_id = input('Enter the template id: ')
+        print(f"Available template: {templates}")
+        template_id = input("Enter the template id: ")
 
         print("\nPrint via:")
         print("  [1] Network (IP address)")
         print("  [2] USB (via Zebra Browser Print)")
         connection_choice = input("Enter choice (1 or 2): ").strip()
 
-        if connection_choice == '2':
+        if connection_choice == "2":
             printer = select_usb_printer()
             if printer is None:
                 sys.exit(1)
             for location in locations:
                 location_data = get_location(location[0], ion_api)
-                barcode_label = create_barcode_label(location_data['location']['entityId'], int(template_id), ion_api)
-                print_label_usb(barcode_label['createBarcodeLabel']['barcodeLabel']['barcode'], printer)
+                barcode_label = create_barcode_label(
+                    location_data["location"]["entityId"], int(template_id), ion_api
+                )
+                print_label_usb(
+                    barcode_label["createBarcodeLabel"]["barcodeLabel"]["barcode"],
+                    printer,
+                )
         else:
-            printer_ip = input('Enter the printer IP address: ')
+            printer_ip = input("Enter the printer IP address: ")
             for location in locations:
                 location_data = get_location(location[0], ion_api)
-                barcode_label = create_barcode_label(location_data['location']['entityId'], int(template_id), ion_api)
-                print_label_network(barcode_label['createBarcodeLabel']['barcodeLabel']['barcode'], printer_ip)
+                barcode_label = create_barcode_label(
+                    location_data["location"]["entityId"], int(template_id), ion_api
+                )
+                print_label_network(
+                    barcode_label["createBarcodeLabel"]["barcodeLabel"]["barcode"],
+                    printer_ip,
+                )
     except Exception as e:
         error = f"Error occurred while running script: {e}"
         print(error)

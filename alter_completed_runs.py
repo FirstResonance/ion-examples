@@ -187,7 +187,7 @@ if __name__ == "__main__":
     client_secret = getpass("Client secret: ")
     if not args.client_id or not client_secret:
         raise argparse.ArgumentError(
-            "Must input client ID and " "client secret to run import"
+            "Must input client ID and client secret to run import"
         )
     api = Api(client_id=args.client_id, client_secret=client_secret)
     update_runs_with_new_info(api, args.procedure_id)

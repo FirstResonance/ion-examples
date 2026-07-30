@@ -1,0 +1,26 @@
+name: CI
+
+# Runs on every PR to master and on pushes to master, so each code change
+# gets an automated check before it can be merged (control CM-6-6).
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    name: ruff format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ruff
+        run: pip install ruff==0.16.0
+      - name: Check formatting
+        run: ruff format --check --diff .

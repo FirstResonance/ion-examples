@@ -1,7 +1,8 @@
 """
 Updates attributes based on csv input script. Required inputs are issue_id, key, value.
-Currently the only key being updated is "Defect Code", this can be modified to do more in the future. 
+Currently the only key being updated is "Defect Code", this can be modified to do more in the future.
 """
+
 import os
 import sys
 import inspect

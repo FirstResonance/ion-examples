@@ -1,6 +1,4 @@
-"""This rule will blocks a procedure from moving to "in review" if all steps don't have a dependency.
-
-"""
+"""This rule will blocks a procedure from moving to "in review" if all steps don't have a dependency."""
 
 input = {
     "enabled": true,

@@ -1,9 +1,10 @@
 """
 Delete purchases.
-Deletes all PO lines (ones associated with aboms, kits, or that have been received) can't be deleted. 
+Deletes all PO lines (ones associated with aboms, kits, or that have been received) can't be deleted.
 Deletes all purchase orders that don't have receipts or PO lines, approvals, fees, or approval requests.
 You can additionally add PO ids that you don't want deleted in PURCHASES_TO_SKIP
 """
+
 import os
 import sys
 import inspect
